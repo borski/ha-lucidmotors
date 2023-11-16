@@ -1,0 +1,161 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "username": "Username"
+                }
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "charge_port_door": {
+                "name": "Charge port door"
+            },
+            "front_cargo": {
+                "name": "Frunk"
+            },
+            "front_left_door": {
+                "name": "Front left door"
+            },
+            "front_right_door": {
+                "name": "Front right door"
+            },
+            "headlights": {
+                "name": "Headlights"
+            },
+            "hvac_power": {
+                "name": "HVAC power"
+            },
+            "rear_cargo": {
+                "name": "Trunk"
+            },
+            "rear_left_door": {
+                "name": "Rear left door"
+            },
+            "rear_right_door": {
+                "name": "Rear right door"
+            },
+            "walkaway_lock": {
+                "name": "Walkaway lock"
+            }
+        },
+        "button": {
+            "flash_lights": {
+                "name": "Flash lights"
+            },
+            "honk_horn": {
+                "name": "Honk horn"
+            },
+            "wake_up": {
+                "name": "Wake up vehicle"
+            }
+        },
+        "light": {
+            "headlights": {
+                "name": "Headlights"
+            }
+        },
+        "lock": {
+            "door_locks": {
+                "name": "Door locks"
+            },
+            "front_cargo": {
+                "name": "Frunk"
+            },
+            "rear_cargo": {
+                "name": "Trunk"
+            }
+        },
+        "sensor": {
+            "ac_current_limit": {
+                "name": "AC current limit"
+            },
+            "alarm_mode": {
+                "name": "Alarm mode"
+            },
+            "alarm_status": {
+                "name": "Alarm status"
+            },
+            "battery_capacity": {
+                "name": "Battery capacity"
+            },
+            "charge_session_power": {
+                "name": "Charge session power"
+            },
+            "charge_session_range": {
+                "name": "Charge session range added"
+            },
+            "charge_session_time_remaining": {
+                "name": "Charge session time remaining"
+            },
+            "charging_end_time": {
+                "name": "Charging end time"
+            },
+            "charging_rate": {
+                "name": "Charging rate"
+            },
+            "charging_rate_distance": {
+                "name": "Charging rate (range estimate)"
+            },
+            "charging_start_time": {
+                "name": "Charging start time"
+            },
+            "charging_status": {
+                "name": "Charging status"
+            },
+            "charging_target": {
+                "name": "Charging target"
+            },
+            "exterior_temp": {
+                "name": "Exterior temperature"
+            },
+            "front_left_tire_pressure": {
+                "name": "Front left tire pressure"
+            },
+            "front_right_tire_pressure": {
+                "name": "Front right tire pressure"
+            },
+            "interior_temp": {
+                "name": "Interior temperature"
+            },
+            "mileage": {
+                "name": "Mileage"
+            },
+            "rear_left_tire_pressure": {
+                "name": "Rear left tire pressure"
+            },
+            "rear_right_tire_pressure": {
+                "name": "Rear right tire pressure"
+            },
+            "remaining_battery_percent": {
+                "name": "Remaining battery percent"
+            },
+            "remaining_battery_power": {
+                "name": "Remaining battery power"
+            },
+            "remaining_range": {
+                "name": "Remaining range"
+            },
+            "remaining_range_total": {
+                "name": "Remaining range total"
+            }
+        },
+        "switch": {
+            "defrost_mode": {
+                "name": "Defrost mode"
+            }
+        }
+    }
+}
