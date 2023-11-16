@@ -1,5 +1,42 @@
 # https://www.home-assistant.io/integrations/default_config/
-default_config:
+#default_config:
+#automation:
+assist_pipeline:
+backup:
+bluetooth:
+config:
+conversation:
+counter:
+dhcp:
+energy:
+#frontend:
+hardware:
+history:
+homeassistant_alerts:
+image_upload:
+input_boolean:
+input_button:
+input_datetime:
+input_number:
+input_select:
+input_text:
+logbook:
+logger:
+map:
+my:
+network:
+person:
+schedule:
+#scene:
+#script:
+stream:
+sun:
+system_health:
+tag:
+timer:
+usb:
+webhook:
+zone:
 
 # https://www.home-assistant.io/integrations/logger/
 logger:
