@@ -2,17 +2,24 @@ name: Validate
 
 on:
   push:
+    branches:
+      - "main"
   pull_request:
+    branches:
+      - "main"
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
   validate-hacs:
+    name: "HACS Validation"
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
       - name: HACS validation
         uses: "hacs/action@main"
         with:
-          category: "integration!"
+          category: "integration"
+          # Remove this 'ignore' key when we have added brand images for our integration to https://github.com/home-assistant/brands
+          ignore: "brands"
