@@ -9,7 +9,7 @@
   "homekit": {},
   "iot_class": "cloud_polling",
   "requirements": [
-    "lucidmotors @ git+https://github.com/nshp/python-lucidmotors"
+    "lucidmotors==0.1.1"
   ],
   "ssdp": [],
   "zeroconf": [],
