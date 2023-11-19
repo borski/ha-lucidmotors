@@ -24,7 +24,7 @@ Platform | Description
 There are two methods to install this installation:
 
 ### HACS Installation (easiest)
-1. Add `https://github.com/borski/hacs-lucidmotors` as a custom repository, with the integration type
+1. Add `https://github.com/borski/ha-lucidmotors` as a custom repository, with the integration type
 1. Restart Home Assistant
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Lucid Motors"
 
@@ -48,7 +48,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 ***
 
 [python-lucidmotors]: https://github.com/nshp/python-lucidmotors
-[commits]: https://github.com/borski/hacs-lucidmotors/commits/main
+[commits]: https://github.com/borski/ha-lucidmotors/commits/main
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/
 [license-shield]: https://img.shields.io/github/license/ludeeus/integration_blueprint.svg?style=for-the-badge

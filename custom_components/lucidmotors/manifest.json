@@ -7,7 +7,7 @@
   "documentation": "https://www.home-assistant.io/integrations/lucidmotors",
   "homekit": {},
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/borski/hacs-lucidmotors/issues",
+  "issue_tracker": "https://github.com/borski/ha-lucidmotors/issues",
   "requirements": [
     "lucidmotors==0.1.1"
   ],
