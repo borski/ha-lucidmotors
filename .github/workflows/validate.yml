@@ -17,8 +17,6 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: "integration"
-          # Remove this 'ignore' key when we have added brand images for our integration to https://github.com/home-assistant/brands
-          ignore: "brands"
 
   validate-hassfest:
     name: "Hassfest Validation"
