@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from lucidmotors import LucidAPI, Vehicle
+from lucidmotors import LucidAPI, Vehicle, Model, ModelVariant, enum_to_str
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -79,10 +79,12 @@ class LucidBaseEntity(CoordinatorEntity[LucidDataUpdateCoordinator]):
             "car": vehicle.config.nickname,
             "vin": self.vin,
         }
+        model_str = enum_to_str(Model, vehicle.config.model)
+        variant_str = enum_to_str(ModelVariant, vehicle.config.variant)
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, vehicle.config.vin)},
             manufacturer="Lucid Motors",
-            model=f"{vehicle.config.model} {vehicle.config.variant}",
+            model=f"{model_str} {variant_str}",
             name=vehicle.config.nickname,
         )
 

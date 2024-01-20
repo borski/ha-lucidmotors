@@ -20,14 +20,14 @@ from .coordinator import LucidDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidButtonEntityDescriptionMixin:
     """Mixin to describe a Lucid Button entity."""
 
     remote_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]]
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidButtonEntityDescription(
     ButtonEntityDescription, LucidButtonEntityDescriptionMixin
 ):
@@ -103,3 +103,4 @@ class LucidButton(LucidBaseEntity, ButtonEntity):
             raise HomeAssistantError(ex) from ex
 
         self.coordinator.async_update_listeners()
+        await self.coordinator.expect_update(self.vehicle.config.vin, ('state',))

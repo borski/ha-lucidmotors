@@ -6,8 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle
-from lucidmotors.vehicle import DefrostState
+from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -52,7 +51,7 @@ SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
         device_class=SwitchDeviceClass.SWITCH,
         turn_on_function=lambda api, vehicle: api.defrost_on(vehicle),
         turn_off_function=lambda api, vehicle: api.defrost_off(vehicle),
-        off_value=DefrostState.OFF,
+        off_value=DefrostState.DEFROST_OFF,
     ),
 )
 

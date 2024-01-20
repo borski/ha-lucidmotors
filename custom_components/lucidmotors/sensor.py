@@ -4,9 +4,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
-from typing import cast
+from typing import cast, Optional
 
-from lucidmotors import Vehicle
+from lucidmotors import Vehicle, AlarmMode, AlarmStatus, enum_to_str
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -147,7 +147,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
     ),
     LucidSensorEntityDescription(
-        key="exterior_temp_c",
+        key="exterior_temp",
         key_path=["state", "cabin"],
         translation_key="exterior_temp",
         icon="mdi:thermometer",
@@ -157,7 +157,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         suggested_display_precision=1,
     ),
     LucidSensorEntityDescription(
-        key="interior_temp_c",
+        key="interior_temp",
         key_path=["state", "cabin"],
         translation_key="interior_temp",
         icon="mdi:thermometer",
@@ -211,12 +211,14 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         key_path=["state", "alarm"],
         translation_key="alarm_mode",
         icon="mdi:shield-lock",
+        value=lambda value, _: enum_to_str(AlarmMode, value),
     ),
     LucidSensorEntityDescription(
         key="status",
         key_path=["state", "alarm"],
         translation_key="alarm_status",
         icon="mdi:shield-lock",
+        value=lambda value, _: enum_to_str(AlarmStatus, value),
     ),
 ]
 

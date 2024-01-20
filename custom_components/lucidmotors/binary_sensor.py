@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 
-from lucidmotors import Vehicle
+from lucidmotors import Vehicle, WalkawayState, DoorState, HvacPower
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -38,7 +38,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_left_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_left_door != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.front_left_door != DoorState.DOOR_STATE_CLOSED,
     ),
     "front_right_door": LucidBinarySensorEntityDescription(
         key="front_right_door",
@@ -46,7 +46,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_right_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_right_door != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.front_right_door != DoorState.DOOR_STATE_CLOSED,
     ),
     "rear_left_door": LucidBinarySensorEntityDescription(
         key="rear_left_door",
@@ -54,7 +54,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_left_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_left_door != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_left_door != DoorState.DOOR_STATE_CLOSED,
     ),
     "rear_right_door": LucidBinarySensorEntityDescription(
         key="rear_right_door",
@@ -62,7 +62,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_right_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_right_door != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_right_door != DoorState.DOOR_STATE_CLOSED,
     ),
     "frunk": LucidBinarySensorEntityDescription(
         key="front_cargo",
@@ -70,7 +70,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_cargo",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_cargo != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.front_cargo != DoorState.DOOR_STATE_CLOSED,
     ),
     "trunk": LucidBinarySensorEntityDescription(
         key="rear_cargo",
@@ -78,7 +78,7 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_cargo",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_cargo != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_cargo != DoorState.DOOR_STATE_CLOSED,
     ),
     "charge_port_door": LucidBinarySensorEntityDescription(
         key="charge_port",
@@ -86,22 +86,21 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="charge_port_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.charge_port != "CLOSED",
+        is_on_fn=lambda vehicle: vehicle.state.body.charge_port != DoorState.DOOR_STATE_CLOSED,
     ),
     "walkaway_lock": LucidBinarySensorEntityDescription(
-        key="walkaway_lock_enabled",
+        key="walkaway_lock",
         key_path=["state", "body"],
         translation_key="walkaway_lock",
         icon="mdi:upload-lock",
-        is_on_fn=lambda vehicle: vehicle.state.body.walkaway_lock_enabled
-        == "WALKAWAY_ACTIVE",
+        is_on_fn=lambda vehicle: vehicle.state.body.walkaway_lock == WalkawayState.WALKAWAY_ACTIVE,
     ),
     "hvac_power": LucidBinarySensorEntityDescription(
         key="power",
         key_path=["state", "hvac"],
         translation_key="hvac_power",
         icon="mdi:hvac",
-        is_on_fn=lambda vehicle: vehicle.state.hvac.power != "HVAC_OFF",
+        is_on_fn=lambda vehicle: vehicle.state.hvac.power != HvacPower.HVAC_OFF,
     ),
 }
 
