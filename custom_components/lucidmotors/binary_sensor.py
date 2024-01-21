@@ -23,7 +23,7 @@ from .coordinator import LucidDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
+@dataclass
 class LucidBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes Lucid sensor entity."""
 
