@@ -25,7 +25,7 @@ from .coordinator import LucidDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidSwitchEntityDescriptionMixin:
     """Mixin to describe a Lucid Switch entity."""
 
@@ -35,7 +35,7 @@ class LucidSwitchEntityDescriptionMixin:
     off_value: Any
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidSwitchEntityDescription(
     SwitchEntityDescription, LucidSwitchEntityDescriptionMixin
 ):

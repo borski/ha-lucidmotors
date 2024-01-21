@@ -27,7 +27,7 @@ from .coordinator import LucidDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidLightEntityDescriptionMixin:
     """Mixin to describe a Lucid Light entity."""
 
@@ -39,7 +39,7 @@ class LucidLightEntityDescriptionMixin:
     on_value: Any
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidLightEntityDescription(
     LightEntityDescription, LucidLightEntityDescriptionMixin
 ):

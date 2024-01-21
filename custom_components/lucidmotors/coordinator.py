@@ -37,6 +37,8 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         self, hass: HomeAssistant, api: LucidAPI, username: str, password: str
     ) -> None:
         """Initialize the Lucid data update coordinator."""
+        assert api.user is not None
+
         super().__init__(
             hass,
             _LOGGER,
@@ -54,6 +56,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             # If session will expire before our next update (* 1.5 for some wiggle
             # room), we should refresh our token now.
+            assert self.update_interval is not None
             async with asyncio.timeout(10):
                 if self.api.session_time_remaining < (self.update_interval * 1.5):
                     _LOGGER.info('Session expires in %r, refreshing token', self.api.session_time_remaining)
@@ -97,6 +100,8 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
 
                 # Compare protobuf Messages - they do not have a working __eq__
                 if hasattr(old_value, 'SerializeToString'):
+                    assert old_value is not None
+                    assert new_value is not None
                     equal = (old_value.SerializeToString(deterministic=True)
                              == new_value.SerializeToString(deterministic=True))
                 # Compare anything else

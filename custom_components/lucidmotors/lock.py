@@ -21,7 +21,7 @@ from .coordinator import LucidDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidLockEntityDescriptionMixin:
     """Mixin to describe a Lucid lock entity."""
 
@@ -31,7 +31,7 @@ class LucidLockEntityDescriptionMixin:
     unlocked_value: Any
 
 
-@dataclass
+@dataclass(frozen=True)
 class LucidLockEntityDescription(
     LockEntityDescription, LucidLockEntityDescriptionMixin
 ):
