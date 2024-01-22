@@ -46,14 +46,6 @@ class LucidSensorEntityDescription(SensorEntityDescription):
 
 SENSOR_TYPES: list[LucidSensorEntityDescription] = [
     LucidSensorEntityDescription(
-        key="charge_limit_percent",
-        key_path=["state", "charging"],
-        translation_key="charging_target",
-        icon="mdi:battery-charging-high",
-        suggested_display_precision=0,
-        native_unit_of_measurement=PERCENTAGE,
-    ),
-    LucidSensorEntityDescription(
         key="charge_percent",
         key_path=["state", "battery"],
         translation_key="remaining_battery_percent",
