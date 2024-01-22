@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
-from typing import cast, Optional
+from typing import cast
 
 from lucidmotors import Vehicle, AlarmMode, AlarmStatus, enum_to_str
 

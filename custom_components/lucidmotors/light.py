@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from lucidmotors import APIError, LucidAPI, Vehicle, LightState
 
@@ -87,7 +87,7 @@ class LucidLight(LucidBaseEntity, LightEntity):
 
     entity_description: LucidLightEntityDescription
     _attr_has_entity_name: bool = True
-    _is_on: Optional[bool]
+    _is_on: bool | None
 
     def __init__(
         self,
@@ -151,6 +151,6 @@ class LucidLight(LucidBaseEntity, LightEntity):
         await self.coordinator.expect_update(self.vehicle.config.vin, path)
 
     @property
-    def is_on(self) -> Optional[bool]:
+    def is_on(self) -> bool | None:
         """Get the current state of the switch."""
         return self._is_on

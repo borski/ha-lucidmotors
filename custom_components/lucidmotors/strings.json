@@ -106,15 +106,6 @@
       "rear_right_door": {
         "name": "Rear right door"
       },
-      "front_cargo": {
-        "name": "Frunk"
-      },
-      "rear_cargo": {
-        "name": "Trunk"
-      },
-      "charge_port_door": {
-        "name": "Charge port door"
-      },
       "walkaway_lock": {
         "name": "Walkaway lock"
       },
@@ -149,18 +140,23 @@
     "lock": {
       "door_locks": {
         "name": "Door locks"
-      },
-      "front_cargo": {
-        "name": "Frunk"
-      },
-      "rear_cargo": {
-        "name": "Trunk"
       }
     },
     "climate": {
         "climate": {
             "name": "Climate control"
         }
+    },
+    "cover": {
+      "charge_port_door": {
+        "name": "Charge port door"
+      },
+      "rear_cargo": {
+        "name": "Trunk"
+      },
+      "front_cargo": {
+        "name": "Frunk"
+      }
     }
   }
 }

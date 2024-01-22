@@ -1,12 +1,11 @@
 """Climate control entity for Lucid vehicles."""
 from __future__ import annotations
 
-from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 import logging
-from typing import Any, Optional
+from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, HvacPower
+from lucidmotors import APIError, Vehicle, HvacPower
 from lucidmotors.const import (
     PRECONDITION_TEMPERATURE_MIN,
     PRECONDITION_TEMPERATURE_MAX,
@@ -148,6 +147,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         )
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """Set HVAC mode."""
         _LOGGER.debug(
             "Setting HVAC mode of %s to %r",
             self.vehicle.config.nickname,
@@ -158,11 +158,11 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         await self.async_set_temperature(temperature=self.target_temperature)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
+        """Set temperature."""
         temperature = kwargs.get("temperature")
         if temperature is not None:
             self._attr_target_temperature = temperature
 
-        current = self.vehicle.state.cabin.interior_temp
         hvac_mode = self.hvac_mode
 
         match hvac_mode:

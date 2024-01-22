@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, DoorState, LockState
+from lucidmotors import APIError, LucidAPI, Vehicle, LockState
 
 from homeassistant.components.lock import LockEntity, LockEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -47,24 +47,6 @@ LOCK_TYPES: tuple[LucidLockEntityDescription, ...] = (
         unlocked_value=LockState.LOCK_STATE_UNLOCKED,
         lock_function=lambda api, vehicle: api.doors_lock(vehicle),
         unlock_function=lambda api, vehicle: api.doors_unlock(vehicle),
-    ),
-    LucidLockEntityDescription(
-        key="front_cargo",
-        key_path=["state", "body"],
-        translation_key="front_cargo",
-        icon="mdi:car-door",
-        unlocked_value=DoorState.DOOR_STATE_OPEN,
-        lock_function=lambda api, vehicle: api.frunk_close(vehicle),
-        unlock_function=lambda api, vehicle: api.frunk_open(vehicle),
-    ),
-    LucidLockEntityDescription(
-        key="rear_cargo",
-        key_path=["state", "body"],
-        translation_key="rear_cargo",
-        icon="mdi:car-door",
-        unlocked_value=DoorState.DOOR_STATE_OPEN,
-        lock_function=lambda api, vehicle: api.trunk_close(vehicle),
-        unlock_function=lambda api, vehicle: api.trunk_open(vehicle),
     ),
 )
 

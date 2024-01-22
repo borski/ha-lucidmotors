@@ -20,12 +20,6 @@
     },
     "entity": {
         "binary_sensor": {
-            "charge_port_door": {
-                "name": "Charge port door"
-            },
-            "front_cargo": {
-                "name": "Frunk"
-            },
             "front_left_door": {
                 "name": "Front left door"
             },
@@ -37,9 +31,6 @@
             },
             "hvac_power": {
                 "name": "HVAC power"
-            },
-            "rear_cargo": {
-                "name": "Trunk"
             },
             "rear_left_door": {
                 "name": "Rear left door"
@@ -62,6 +53,22 @@
                 "name": "Wake up vehicle"
             }
         },
+        "climate": {
+            "climate": {
+                "name": "Climate control"
+            }
+        },
+        "cover": {
+            "charge_port_door": {
+                "name": "Charge port door"
+            },
+            "front_cargo": {
+                "name": "Frunk"
+            },
+            "rear_cargo": {
+                "name": "Trunk"
+            }
+        },
         "light": {
             "headlights": {
                 "name": "Headlights"
@@ -70,12 +77,6 @@
         "lock": {
             "door_locks": {
                 "name": "Door locks"
-            },
-            "front_cargo": {
-                "name": "Frunk"
-            },
-            "rear_cargo": {
-                "name": "Trunk"
             }
         },
         "sensor": {
