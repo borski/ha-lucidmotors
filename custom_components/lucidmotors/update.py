@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import logging
 
-from lucidmotors import Vehicle
+from lucidmotors import Vehicle, APIError, LucidAPI
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import LucidBaseEntity
@@ -37,7 +38,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
     _attr_force_update: bool = False
     _attr_icon: str = "mdi:update"
-    _attr_supported_features = UpdateEntityFeature.PROGRESS
+    _attr_supported_features = UpdateEntityFeature.PROGRESS | UpdateEntityFeature.INSTALL
 
     def __init__(
         self, coordinator: LucidDataUpdateCoordinator, vehicle: Vehicle
@@ -47,6 +48,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
         self._attr_unique_id = f"{vehicle.config.vin}-update"
         self._attr_name = None
+        self.api = coordinator.api
 
     @property
     def installed_version(self) -> str:
@@ -68,3 +70,18 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
             return False
 
         return self.vehicle.state.software_update.percent_complete
+    
+    async def async_install(self, version, backup: bool, **kwargs: Any) -> None:
+        """Install an Update."""
+        
+        _LOGGER.debug(
+            "Installing update %s on %s",
+            self.vehicle.state.software_update.version_available,
+            self.vehicle.config.nickname,
+        )
+
+        try:
+            await self.api.apply_update(self.vehicle)
+            self.async_write_ha_state()
+        except APIError as ex:
+            raise HomeAssistantError(ex) from ex
