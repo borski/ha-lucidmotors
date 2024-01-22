@@ -30,6 +30,9 @@ async def async_setup_entry(
     for vehicle in coordinator.api.vehicles:
         entities.append(LucidUpdateEntity(coordinator, vehicle))
 
+    for entity in entities:
+        await entity.async_update()
+
     async_add_entities(entities)
 
 
@@ -70,18 +73,27 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
             return False
 
         return self.vehicle.state.software_update.percent_complete
+
+    async def async_update(self) -> None:
+        """Update state of entity."""
+
+        update_release_notes = await self.api.get_update_release_notes(self.latest_version)
+        
+        self._attr_release_url = update_release_notes.url
+        self._attr_release_summary = update_release_notes.info.description
     
     async def async_install(self, version, backup: bool, **kwargs: Any) -> None:
         """Install an Update."""
         
         _LOGGER.debug(
             "Installing update %s on %s",
-            self.vehicle.state.software_update.version_available,
+            self.latest_version,
             self.vehicle.config.nickname,
         )
 
         try:
-            await self.api.apply_update(self.vehicle)
-            self.async_write_ha_state()
+            if self.latest_version != self.installed_version:
+                await self.api.apply_update(self.vehicle)
+                self.async_write_ha_state()
         except APIError as ex:
             raise HomeAssistantError(ex) from ex

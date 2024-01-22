@@ -48,6 +48,7 @@ CLIMATE_DESCRIPTION: LucidClimateEntityDescription = (
         key="climate",
         name="Climate Control",
         translation_key="climate",
+        icon="mdi:thermometer-auto"
     )
 )
 
