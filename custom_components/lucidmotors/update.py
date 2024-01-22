@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import logging
+import asyncio
+import httpx
+from markdownify import markdownify as md
 
 from lucidmotors import Vehicle, APIError, LucidAPI
 
@@ -41,7 +44,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
     _attr_force_update: bool = False
     _attr_icon: str = "mdi:update"
-    _attr_supported_features = UpdateEntityFeature.PROGRESS | UpdateEntityFeature.INSTALL
+    _attr_supported_features = UpdateEntityFeature.PROGRESS | UpdateEntityFeature.INSTALL | UpdateEntityFeature.RELEASE_NOTES
 
     def __init__(
         self, coordinator: LucidDataUpdateCoordinator, vehicle: Vehicle
@@ -73,6 +76,24 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
             return False
 
         return self.vehicle.state.software_update.percent_complete
+
+    async def async_release_notes(self) -> str | None:
+        """Return the release notes."""
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    self._attr_release_url,
+                    follow_redirects=True,
+                    headers={"Accept-Language": "en-US,en;q=0.9"}
+                )
+
+                if response.status_code == 200:
+                    return md(response.text)
+                else:
+                    return f"Failed to retrieve content from {self._attr_release_url}. Status code: {response.status_code}"
+            except Exception as ex:
+                raise HomeAssistantError(ex) from ex
 
     async def async_update(self) -> None:
         """Update state of entity."""
