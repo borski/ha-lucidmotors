@@ -59,17 +59,20 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
             assert self.update_interval is not None
             async with asyncio.timeout(10):
                 if self.api.session_time_remaining < (self.update_interval * 1.5):
-                    _LOGGER.info('Session expires in %r, refreshing token', self.api.session_time_remaining)
+                    _LOGGER.info(
+                        "Session expires in %r, refreshing token",
+                        self.api.session_time_remaining,
+                    )
                     await self.api.authentication_refresh()
             async with asyncio.timeout(10):
                 await self.api.fetch_vehicles()
-                _LOGGER.info('Vehicles: %r', self.api.vehicles)
+                _LOGGER.info("Vehicles: %r", self.api.vehicles)
         except APIError as err:
             if err.code == StatusCode.UNAUTHENTICATED:  # token expired
                 # NOTE: This also updates vehicles. If we switch to a
                 # token-refreshing API, we'd have to also fetch_vehicles()
                 # here.
-                _LOGGER.info('Session expired, reauthenticating')
+                _LOGGER.info("Session expired, reauthenticating")
                 await self.api.login(self.username, self.password)
             else:
                 raise UpdateFailed(f"Error communicating with API: {err}") from err
@@ -93,23 +96,29 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
                 new_value = vehicle
 
                 for key in path:
-                    _LOGGER.info('OLD: get %r from %r', key, old_value)
-                    _LOGGER.info('NEW: get %r from %r', key, new_value)
+                    _LOGGER.info("OLD: get %r from %r", key, old_value)
+                    _LOGGER.info("NEW: get %r from %r", key, new_value)
                     old_value = getattr(old_value, key)
                     new_value = getattr(new_value, key)
 
                 # Compare protobuf Messages - they do not have a working __eq__
-                if hasattr(old_value, 'SerializeToString'):
+                if hasattr(old_value, "SerializeToString"):
                     assert old_value is not None
                     assert new_value is not None
-                    equal = (old_value.SerializeToString(deterministic=True)
-                             == new_value.SerializeToString(deterministic=True))
+                    equal = old_value.SerializeToString(
+                        deterministic=True
+                    ) == new_value.SerializeToString(deterministic=True)
                 # Compare anything else
                 else:
                     equal = old_value == new_value
 
-                _LOGGER.info('State %s => %r equal? %r timeout? %r',
-                             vehicle.config.vin, path, equal, timeout <= current_time)
+                _LOGGER.info(
+                    "State %s => %r equal? %r timeout? %r",
+                    vehicle.config.vin,
+                    path,
+                    equal,
+                    timeout <= current_time,
+                )
 
                 if not equal or timeout <= current_time:
                     updated_or_expired.append((vehicle.config.vin, path))
@@ -129,7 +138,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         if updated_or_expired and not self._expected_updates:
             self.update_interval = timedelta(seconds=DEFAULT_UPDATE_INTERVAL)
             self._fast_update_timeout = None
-            _LOGGER.info('Fast update mode DISengaged')
+            _LOGGER.info("Fast update mode DISengaged")
 
     def get_vehicle(self, vin: str) -> Vehicle | None:
         """Look up a Vehicle object by VIN."""
@@ -141,7 +150,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         The coordinator will check for updates more frequently until the data
         actually changes, or until FAST_UPDATE_TIMEOUT seconds pass.
         """
-        _LOGGER.info('Fast update mode engaged')
+        _LOGGER.info("Fast update mode engaged")
         self.update_interval = timedelta(seconds=FAST_UPDATE_INTERVAL)
 
         if vin not in self._expected_updates:

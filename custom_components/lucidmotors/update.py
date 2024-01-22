@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import logging
-import asyncio
+from typing import Any
 import httpx
 from markdownify import markdownify as md
 
-from lucidmotors import Vehicle, APIError, LucidAPI
+from lucidmotors import Vehicle, APIError
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
@@ -44,7 +44,11 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
     _attr_force_update: bool = False
     _attr_icon: str = "mdi:update"
-    _attr_supported_features = UpdateEntityFeature.PROGRESS | UpdateEntityFeature.INSTALL | UpdateEntityFeature.RELEASE_NOTES
+    _attr_supported_features = (
+        UpdateEntityFeature.PROGRESS
+        | UpdateEntityFeature.INSTALL
+        | UpdateEntityFeature.RELEASE_NOTES
+    )
 
     def __init__(
         self, coordinator: LucidDataUpdateCoordinator, vehicle: Vehicle
@@ -85,7 +89,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
                 response = await client.get(
                     self._attr_release_url,
                     follow_redirects=True,
-                    headers={"Accept-Language": "en-US,en;q=0.9"}
+                    headers={"Accept-Language": "en-US,en;q=0.9"},
                 )
 
                 if response.status_code == 200:
@@ -98,14 +102,16 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
     async def async_update(self) -> None:
         """Update state of entity."""
 
-        update_release_notes = await self.api.get_update_release_notes(self.latest_version)
-        
+        update_release_notes = await self.api.get_update_release_notes(
+            self.latest_version
+        )
+
         self._attr_release_url = update_release_notes.url
         self._attr_release_summary = update_release_notes.info.description
-    
+
     async def async_install(self, version, backup: bool, **kwargs: Any) -> None:
         """Install an Update."""
-        
+
         _LOGGER.debug(
             "Installing update %s on %s",
             self.latest_version,

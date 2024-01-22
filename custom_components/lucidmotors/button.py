@@ -103,4 +103,4 @@ class LucidButton(LucidBaseEntity, ButtonEntity):
             raise HomeAssistantError(ex) from ex
 
         self.coordinator.async_update_listeners()
-        await self.coordinator.expect_update(self.vehicle.config.vin, ('state',))
+        await self.coordinator.expect_update(self.vehicle.config.vin, ("state",))

@@ -43,13 +43,11 @@ class LucidClimateEntityDescription(
     """Describes Lucid Climate entity."""
 
 
-CLIMATE_DESCRIPTION: LucidClimateEntityDescription = (
-    LucidClimateEntityDescription(
-        key="climate",
-        name="Climate Control",
-        translation_key="climate",
-        icon="mdi:thermometer-auto"
-    )
+CLIMATE_DESCRIPTION: LucidClimateEntityDescription = LucidClimateEntityDescription(
+    key="climate",
+    name="Climate Control",
+    translation_key="climate",
+    icon="mdi:thermometer-auto",
 )
 
 
@@ -64,9 +62,7 @@ async def async_setup_entry(
     entities: list[LucidClimate] = []
 
     for vehicle in coordinator.api.vehicles:
-        entities.append(
-            LucidClimate(coordinator, vehicle, CLIMATE_DESCRIPTION)
-        )
+        entities.append(LucidClimate(coordinator, vehicle, CLIMATE_DESCRIPTION))
 
     async_add_entities(entities)
 
@@ -80,9 +76,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         HVACMode.OFF,
         HVACMode.HEAT_COOL,
     ]
-    _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE
-    )
+    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp: float = PRECONDITION_TEMPERATURE_MIN
     _attr_max_temp: float = PRECONDITION_TEMPERATURE_MAX
@@ -144,7 +138,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
     async def _expect_update(self):
         await self.coordinator.expect_update(
             self.vehicle.config.vin,
-            ('state', 'hvac'),
+            ("state", "hvac"),
         )
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:

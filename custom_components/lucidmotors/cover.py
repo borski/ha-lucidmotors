@@ -8,7 +8,12 @@ from typing import Any
 
 from lucidmotors import APIError, LucidAPI, Vehicle, DoorState, StrutType
 
-from homeassistant.components.cover import CoverDeviceClass, CoverEntity, CoverEntityFeature, CoverEntityDescription
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+    CoverEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
@@ -19,6 +24,7 @@ from .const import DOMAIN
 from .coordinator import LucidDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class LucidCoverEntityDescriptionMixin:
@@ -80,7 +86,10 @@ async def async_setup_entry(
 
     for vehicle in coordinator.api.vehicles:
         entities.extend(
-            [LucidCover(coordinator, vehicle, description) for description in COVER_TYPES]
+            [
+                LucidCover(coordinator, vehicle, description)
+                for description in COVER_TYPES
+            ]
         )
 
     async_add_entities(entities)
@@ -91,7 +100,6 @@ class LucidCover(LucidBaseEntity, CoverEntity):
 
     entity_description: LucidCoverEntityDescription
     _attr_has_entity_name: bool = True
-    _is_on: bool
 
     def __init__(
         self,
@@ -108,8 +116,8 @@ class LucidCover(LucidBaseEntity, CoverEntity):
         # Note: Pure's frunk has STRUT_TYPE_GAS, not powered open/close. Close
         # doesn't actually do anything.
         if (
-            description.key != "front_cargo" or
-            vehicle.config.frunk_strut == StrutType.STRUT_TYPE_POWER
+            description.key != "front_cargo"
+            or vehicle.config.frunk_strut == StrutType.STRUT_TYPE_POWER
         ):
             self._attr_supported_features |= CoverEntityFeature.CLOSE
         self._attr_device_class = CoverDeviceClass.DOOR

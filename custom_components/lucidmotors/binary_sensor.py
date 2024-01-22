@@ -38,7 +38,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_left_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_left_door != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.front_left_door
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "front_right_door": LucidBinarySensorEntityDescription(
         key="front_right_door",
@@ -46,7 +47,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_right_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_right_door != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.front_right_door
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "rear_left_door": LucidBinarySensorEntityDescription(
         key="rear_left_door",
@@ -54,7 +56,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_left_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_left_door != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_left_door
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "rear_right_door": LucidBinarySensorEntityDescription(
         key="rear_right_door",
@@ -62,14 +65,16 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_right_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_right_door != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_right_door
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "walkaway_lock": LucidBinarySensorEntityDescription(
         key="walkaway_lock",
         key_path=["state", "body"],
         translation_key="walkaway_lock",
         icon="mdi:upload-lock",
-        is_on_fn=lambda vehicle: vehicle.state.body.walkaway_lock == WalkawayState.WALKAWAY_ACTIVE,
+        is_on_fn=lambda vehicle: vehicle.state.body.walkaway_lock
+        == WalkawayState.WALKAWAY_ACTIVE,
     ),
     "hvac_power": LucidBinarySensorEntityDescription(
         key="power",
