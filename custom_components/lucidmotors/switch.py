@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState
+from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState, ChargeState, ChargeAction
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -32,7 +32,7 @@ class LucidSwitchEntityDescriptionMixin:
     key_path: list[str]
     turn_on_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]]
     turn_off_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]]
-    off_value: Any
+    on_value: Any
 
 
 @dataclass(frozen=True)
@@ -51,7 +51,17 @@ SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
         device_class=SwitchDeviceClass.SWITCH,
         turn_on_function=lambda api, vehicle: api.defrost_on(vehicle),
         turn_off_function=lambda api, vehicle: api.defrost_off(vehicle),
-        off_value=DefrostState.DEFROST_OFF,
+        on_value=DefrostState.DEFROST_ON,
+    ),
+    LucidSwitchEntityDescription(
+        key="charge_state",
+        key_path=["state", "charging"],
+        translation_key="charging",
+        icon="mdi:ev-station",
+        device_class=SwitchDeviceClass.SWITCH,
+        turn_on_function=lambda api, vehicle: api.start_charging(vehicle),
+        turn_off_function=lambda api, vehicle: api.stop_charging(vehicle),
+        on_value=ChargeState.CHARGE_STATE_CHARGING
     ),
 )
 
@@ -108,10 +118,8 @@ class LucidSwitch(LucidBaseEntity, SwitchEntity):
         for attr in self.entity_description.key_path:
             state = getattr(state, attr)
         state = getattr(state, self.entity_description.key)
-        # Using != off_value rather than == on_value so that UNKNOWN states
-        # will be considered on. This may not always be the right answer, but I
-        # think it's better to turn unknown things off rather than on?
-        self._is_on = state != self.entity_description.off_value
+
+        self._is_on = state == self.entity_description.on_value
         super()._handle_coordinator_update()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
