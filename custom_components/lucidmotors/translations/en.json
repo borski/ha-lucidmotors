@@ -79,6 +79,11 @@
                 "name": "Door locks"
             }
         },
+        "number": {
+            "charging_target": {
+                "name": "Charge limit"
+            }
+        },
         "sensor": {
             "ac_current_limit": {
                 "name": "AC current limit"

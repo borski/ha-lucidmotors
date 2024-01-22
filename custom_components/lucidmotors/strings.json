@@ -157,6 +157,11 @@
       "front_cargo": {
         "name": "Frunk"
       }
+    },
+    "number": {
+      "charging_target": {
+        "name": "Charge limit"
+      }
     }
   }
 }

@@ -26,6 +26,7 @@ PLATFORMS: list[Platform] = [
     Platform.LOCK,
     Platform.CLIMATE,
     Platform.COVER,
+    Platform.NUMBER,
 ]
 
 
