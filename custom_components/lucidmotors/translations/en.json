@@ -158,10 +158,12 @@
                 "name": "Remaining range total"
             }
         },
-        "switch": {
+        "select": {
             "alarm": {
-                "name": "Alarm"
-            },
+              "name": "Alarm"
+            }
+        },
+        "switch": {
             "charging": {
                 "name": "Charging"
             },

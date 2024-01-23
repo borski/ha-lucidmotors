@@ -127,15 +127,17 @@
         "name": "Honk horn"
       }
     },
+    "select": {
+      "alarm": {
+        "name": "Alarm"
+      }
+    },
     "switch": {
       "defrost_mode": {
         "name": "Defrost mode"
       },
       "charging": {
         "name": "Charging"
-      },
-      "alarm": {
-        "name": "Alarm"
       }
     },
     "light": {
