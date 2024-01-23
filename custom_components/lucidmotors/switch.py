@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState, ChargeState, ChargeAction
+from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState, ChargeState, ChargeAction, AlarmStatus
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -62,6 +62,16 @@ SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
         turn_on_function=lambda api, vehicle: api.start_charging(vehicle),
         turn_off_function=lambda api, vehicle: api.stop_charging(vehicle),
         on_value=ChargeState.CHARGE_STATE_CHARGING
+    ),
+    LucidSwitchEntityDescription(
+        key="status",
+        key_path=["state", "alarm"],
+        translation_key="alarm",
+        icon="mdi:shield-car",
+        device_class=SwitchDeviceClass.SWITCH,
+        turn_on_function=lambda api, vehicle: api.turn_alarm_on(vehicle),
+        turn_off_function=lambda api, vehicle: api.turn_alarm_off(vehicle),
+        on_value=AlarmStatus.ALARM_STATUS_ARMED
     ),
 )
 

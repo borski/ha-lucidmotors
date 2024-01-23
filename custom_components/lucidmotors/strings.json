@@ -133,6 +133,9 @@
       },
       "charging": {
         "name": "Charging"
+      },
+      "alarm": {
+        "name": "Alarm"
       }
     },
     "light": {

@@ -159,6 +159,9 @@
             }
         },
         "switch": {
+            "alarm": {
+                "name": "Alarm"
+            },
             "charging": {
                 "name": "Charging"
             },
