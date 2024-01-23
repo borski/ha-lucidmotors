@@ -27,7 +27,9 @@ class LucidNumberEntityDescriptionMixin:
 
     key_path: list[str]
     native_value_fn: Callable[[Vehicle], Coroutine[None, None, None]]
-    set_native_value_fn: Callable[[LucidAPI, Vehicle, float], Coroutine[None, None, None]]
+    set_native_value_fn: Callable[
+        [LucidAPI, Vehicle, float], Coroutine[None, None, None]
+    ]
 
 
 @dataclass(frozen=True)
