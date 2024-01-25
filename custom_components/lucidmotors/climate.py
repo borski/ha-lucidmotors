@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from lucidmotors import APIError, Vehicle, HvacPower, DefrostState
 from lucidmotors.const import (
@@ -83,7 +83,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp: float = PRECONDITION_TEMPERATURE_MIN
     _attr_max_temp: float = PRECONDITION_TEMPERATURE_MAX
-    _attr_target_temperature: float = DEFAULT_TARGET_TEMPERATURE
+    _attr_target_temperature: Optional[float] = DEFAULT_TARGET_TEMPERATURE
     _saved_target_temperature: float = DEFAULT_TARGET_TEMPERATURE
 
     def __init__(

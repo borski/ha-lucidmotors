@@ -26,7 +26,7 @@ class LucidNumberEntityDescriptionMixin:
     """Mixin to describe a Lucid number entity."""
 
     key_path: list[str]
-    native_value_fn: Callable[[Vehicle], Coroutine[None, None, None]]
+    native_value_fn: Callable[[Vehicle], float]
     set_native_value_fn: Callable[
         [LucidAPI, Vehicle, float], Coroutine[None, None, None]
     ]
@@ -98,7 +98,7 @@ class LucidNumber(LucidBaseEntity, NumberEntity):
         self._attr_unique_id = f"{vehicle.config.vin}-{description.key}"
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> float:
         """Return native value."""
         return self.entity_description.native_value_fn(self.vehicle)
 

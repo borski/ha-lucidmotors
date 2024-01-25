@@ -86,6 +86,8 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
         async with httpx.AsyncClient() as client:
             try:
+                assert self._attr_release_url is not None
+
                 response = await client.get(
                     self._attr_release_url,
                     follow_redirects=True,

@@ -40,8 +40,8 @@ class LucidSelectEntityDescriptionMixin:
     """Mixin to describe a Lucid select entity."""
 
     key_path: list[str]
-    select_fn: Callable[[LucidAPI, Vehicle, str], Coroutine[None, None, None]]
-    current_value_fn: Callable[[Vehicle], Coroutine[None, None, None]]
+    select_fn: Callable[[LucidAPI, Vehicle, AlarmMode], Coroutine[None, None, None]]
+    current_value_fn: Callable[[Vehicle], str]
 
 
 @dataclass(frozen=True)
