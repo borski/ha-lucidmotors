@@ -20,6 +20,12 @@
     },
     "entity": {
         "binary_sensor": {
+            "charge_port_door": {
+                "name": "Charge port door"
+            },
+            "front_cargo": {
+                "name": "Frunk"
+            },
             "front_left_door": {
                 "name": "Front left door"
             },
@@ -31,6 +37,9 @@
             },
             "hvac_power": {
                 "name": "HVAC power"
+            },
+            "rear_cargo": {
+                "name": "Trunk"
             },
             "rear_left_door": {
                 "name": "Rear left door"

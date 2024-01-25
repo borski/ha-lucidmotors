@@ -106,6 +106,15 @@
       "rear_right_door": {
         "name": "Rear right door"
       },
+      "front_cargo": {
+        "name": "Frunk"
+      },
+      "rear_cargo": {
+        "name": "Trunk"
+      },
+      "charge_port_door": {
+        "name": "Charge port door"
+      },
       "walkaway_lock": {
         "name": "Walkaway lock"
       },
