@@ -36,7 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
-    api = LucidAPI()
+    api = LucidAPI(auto_wake=True)
     await api.login(entry.data["username"], entry.data["password"])
     assert api.user is not None
 
