@@ -25,7 +25,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import LucidBaseEntity
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_TARGET_TEMPERATURE
 from .coordinator import LucidDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,7 +83,8 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp: float = PRECONDITION_TEMPERATURE_MIN
     _attr_max_temp: float = PRECONDITION_TEMPERATURE_MAX
-    _attr_target_temperature: float = 20.0
+    _attr_target_temperature: float = DEFAULT_TARGET_TEMPERATURE
+    _saved_target_temperature: float = DEFAULT_TARGET_TEMPERATURE
 
     def __init__(
         self,
@@ -99,6 +100,16 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         self._attr_hvac_mode = None
         self._attr_preset_mode = None
 
+    def _set_target_temperature(self, target: Optional[float]) -> None:
+        """
+        Set (or clear) our local temperature target. If clearing, save the
+        previous value as well.
+        """
+        if target is None and self._attr_target_temperature is not None:
+            self._saved_target_temperature = self._attr_target_temperature
+
+        self._attr_target_temperature = target
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -111,16 +122,23 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         self._attr_current_temperature = self.vehicle.state.cabin.interior_temp
         match self.vehicle.state.hvac.power:
             case HvacPower.HVAC_ON | HvacPower.HVAC_PRECONDITION:
-                target = self.target_temperature
-                current = self.vehicle.state.cabin.interior_temp
-                if self.vehicle.state.hvac.defrost != DefrostState.DEFROST_ON:
+                target = self._attr_target_temperature
+                if self.vehicle.state.hvac.defrost == DefrostState.DEFROST_ON:
                     self._attr_hvac_mode = HVACMode.HEAT_COOL
-                if target is None:
-                    self._attr_hvac_action = None
-                elif current >= target:
-                    self._attr_hvac_action = HVACAction.COOLING
-                else:
                     self._attr_hvac_action = HVACAction.HEATING
+                    self._set_target_temperature(None)
+                else:
+                    current = self.vehicle.state.cabin.interior_temp
+                    if target is None:
+                        target = self._saved_target_temperature
+                        self._set_target_temperature(target)
+                    self._attr_hvac_mode = HVACMode.HEAT_COOL
+                    if target is None:
+                        self._attr_hvac_action = None
+                    elif current >= target:
+                        self._attr_hvac_action = HVACAction.COOLING
+                    else:
+                        self._attr_hvac_action = HVACAction.HEATING
             case HvacPower.HVAC_OFF:
                 self._attr_hvac_action = HVACAction.OFF
                 self._attr_hvac_mode = HVACMode.OFF
@@ -139,13 +157,13 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
             self.vehicle.state.hvac.power,
             self._attr_hvac_action,
             self._attr_hvac_mode,
-            self.target_temperature,
+            self._attr_target_temperature,
             self.vehicle.state.cabin.interior_temp,
         )
 
         super()._handle_coordinator_update()
 
-    async def _expect_update(self):
+    async def _expect_update(self) -> None:
         await self.coordinator.expect_update(
             self.vehicle.config.vin,
             ("state", "hvac"),
@@ -159,13 +177,16 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
             preset_mode,
         )
 
-        self._attr_preset_mode = "Normal"
+        self._attr_preset_mode = preset_mode
         self.async_write_ha_state()
 
         if preset_mode == "Normal":
             await self.api.defrost_off(self.vehicle)
+            self._set_target_temperature(self._saved_target_temperature)
         elif preset_mode == "Defrost":
             await self.api.defrost_on(self.vehicle)
+            # Target temperature is not applicable in Defrost mode
+            self._set_target_temperature(None)
 
         await self._expect_update()
 
@@ -178,7 +199,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         )
 
         self._attr_hvac_mode = hvac_mode
-        await self.async_set_temperature(temperature=self.target_temperature)
+        await self.async_set_temperature(temperature=self._attr_target_temperature)
 
         self.async_write_ha_state()
         await self._expect_update()
@@ -187,7 +208,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
         """Set temperature."""
         temperature = kwargs.get("temperature")
         if temperature is not None:
-            self._attr_target_temperature = temperature
+            self._set_target_temperature(temperature)
 
         hvac_mode = self.hvac_mode
 
@@ -195,11 +216,11 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
             case HVACMode.OFF:
                 target = None
             case HVACMode.HEAT_COOL:
-                target = self.target_temperature
+                target = self._attr_target_temperature
                 if target is None:
                     # User just set a mode, but we don't have a target temperature yet.
-                    # Make it up?
-                    target = 20.0  # degrees celsius
+                    # Recall previous or use default.
+                    target = self._saved_target_temperature
             case _:
                 _LOGGER.error(
                     "Climate control for %s does not support mode %r",

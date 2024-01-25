@@ -16,3 +16,6 @@ FAST_UPDATE_INTERVAL = 5
 
 # Timeout for fast updates in case data does not actually change
 FAST_UPDATE_TIMEOUT = 2 * 60
+
+# Default target temperature for climate control (Celsius)
+DEFAULT_TARGET_TEMPERATURE = 20.0
