@@ -9,7 +9,8 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/borski/ha-lucidmotors/issues",
   "requirements": [
-    "lucidmotors==1.0.0"
+    "lucidmotors==1.0.0",
+    "markdownify==0.11.6"
   ],
   "ssdp": [],
   "version": "1.0.0",
