@@ -166,9 +166,6 @@
         "switch": {
             "charging": {
                 "name": "Charging"
-            },
-            "defrost_mode": {
-                "name": "Defrost mode"
             }
         }
     }

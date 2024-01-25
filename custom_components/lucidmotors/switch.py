@@ -44,16 +44,6 @@ class LucidSwitchEntityDescription(
 
 SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
     LucidSwitchEntityDescription(
-        key="defrost",
-        key_path=["state", "hvac"],
-        translation_key="defrost_mode",
-        icon="mdi:car-defrost-front",
-        device_class=SwitchDeviceClass.SWITCH,
-        turn_on_function=lambda api, vehicle: api.defrost_on(vehicle),
-        turn_off_function=lambda api, vehicle: api.defrost_off(vehicle),
-        on_value=DefrostState.DEFROST_ON,
-    ),
-    LucidSwitchEntityDescription(
         key="charge_state",
         key_path=["state", "charging"],
         translation_key="charging",

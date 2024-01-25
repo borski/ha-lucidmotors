@@ -14,13 +14,17 @@ _Integration to integrate with [python-lucidmotors][python-lucidmotors]._
 Platform | Description
 -- | --
 `binary_sensor` | Tons of info from the car.
+`climate` | Precondition interior climate
 `sensor` | Yet more info from the car.
 `button` | Various actions like honk horn, flash lights, etc.
 `device_tracker` | Where's your car? :)
 `light` | Turn headlights on and off (and actually, *really* off)
-`lock` | Doors, frunk, trunk
-`switch` | Defrost mode
-`update` | Know if you have an update waiting!
+`lock` | Doors
+`cover` | Frunk, Trunk
+`number` | Set charge limit
+`select` | Alarm mode (on, off, silent/push notifications only)
+`switch` | Start/stop charging
+`update` | Update notifications, release notes, and remote installation
 
 ## Installation
 There are two methods to install this installation:
