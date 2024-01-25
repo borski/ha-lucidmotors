@@ -7,6 +7,7 @@ import logging
 from typing import cast
 
 from lucidmotors import Vehicle, AlarmMode, AlarmStatus, enum_to_str
+from lucidmotors.const import TIRE_PRESSURE_MAX
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -167,6 +168,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfPressure.BAR,
         suggested_display_precision=1,
+        value=lambda value, _: None if value == TIRE_PRESSURE_MAX else value,
     ),
     LucidSensorEntityDescription(
         key="front_right_tire_pressure_bar",
@@ -177,6 +179,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfPressure.BAR,
         suggested_display_precision=1,
+        value=lambda value, _: None if value == TIRE_PRESSURE_MAX else value,
     ),
     LucidSensorEntityDescription(
         key="rear_left_tire_pressure_bar",
@@ -187,6 +190,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfPressure.BAR,
         suggested_display_precision=1,
+        value=lambda value, _: None if value == TIRE_PRESSURE_MAX else value,
     ),
     LucidSensorEntityDescription(
         key="rear_right_tire_pressure_bar",
@@ -197,6 +201,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfPressure.BAR,
         suggested_display_precision=1,
+        value=lambda value, _: None if value == TIRE_PRESSURE_MAX else value,
     ),
     LucidSensorEntityDescription(
         key="mode",
