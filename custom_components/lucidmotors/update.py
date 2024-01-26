@@ -104,6 +104,8 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
     async def async_update(self) -> None:
         """Update state of entity."""
 
+
+
         update_release_notes = await self.api.get_update_release_notes(
             self.latest_version
         )
