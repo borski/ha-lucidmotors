@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 from markdownify import markdownify as md
 
-from lucidmotors import Vehicle, APIError
+from lucidmotors import Vehicle, APIError, UpdateState
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
@@ -76,7 +76,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
     @property
     def in_progress(self) -> bool | int:
         """Return whether the update is in progress, and at what percentage."""
-        if self.vehicle.state.software_update.state != "IN_PROGRESS":
+        if self.vehicle.state.software_update.state != UpdateState.UPDATE_STATE_IN_PROGRESS:
             return False
 
         return self.vehicle.state.software_update.percent_complete
@@ -103,8 +103,6 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
     async def async_update(self) -> None:
         """Update state of entity."""
-
-
 
         update_release_notes = await self.api.get_update_release_notes(
             self.latest_version
