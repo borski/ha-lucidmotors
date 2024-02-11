@@ -7,7 +7,7 @@ import logging
 from typing import cast
 
 from lucidmotors import Vehicle, AlarmMode, AlarmStatus, enum_to_str
-from lucidmotors.const import TIRE_PRESSURE_MAX
+from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -119,6 +119,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         native_unit_of_measurement=UnitOfTime.MINUTES,
+        value=lambda value, _: None if value == CHARGE_SESSION_TIME_MAX else value,
     ),
     LucidSensorEntityDescription(
         key="remaining_range",
