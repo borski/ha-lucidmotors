@@ -47,6 +47,7 @@ NUMBER_TYPES: tuple[LucidNumberEntityDescription, ...] = (
         icon="mdi:ev-station",
         native_step=1,
         native_unit_of_measurement=PERCENTAGE,
+        native_min_value=50.0,  # Enforced by Lucid API
         native_value_fn=lambda vehicle: round(
             vehicle.state.charging.charge_limit_percent
         ),
