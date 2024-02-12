@@ -133,8 +133,17 @@
             "charging_target": {
                 "name": "Charging target"
             },
+            "drive_mode": {
+                "name": "Drive mode"
+            },
+            "energy_type": {
+                "name": "Energy type"
+            },
             "exterior_temp": {
                 "name": "Exterior temperature"
+            },
+            "look": {
+                "name": "Look"
             },
             "front_left_tire_pressure": {
                 "name": "Front left tire pressure"
@@ -142,11 +151,20 @@
             "front_right_tire_pressure": {
                 "name": "Front right tire pressure"
             },
+            "gear_position": {
+                "name": "Gear position"
+            },
             "interior_temp": {
                 "name": "Interior temperature"
             },
             "mileage": {
                 "name": "Mileage"
+            },
+            "paint_color": {
+                "name": "Paint color"
+            },
+            "power_state": {
+                "name": "Power state"
             },
             "rear_left_tire_pressure": {
                 "name": "Rear left tire pressure"
@@ -165,6 +183,9 @@
             },
             "remaining_range_total": {
                 "name": "Remaining range total"
+            },
+            "wheels": {
+                "name": "Wheels"
             }
         },
         "select": {

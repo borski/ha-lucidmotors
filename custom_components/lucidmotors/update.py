@@ -76,7 +76,10 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
     @property
     def in_progress(self) -> bool | int:
         """Return whether the update is in progress, and at what percentage."""
-        if self.vehicle.state.software_update.state != UpdateState.UPDATE_STATE_IN_PROGRESS:
+        if (
+            self.vehicle.state.software_update.state
+            != UpdateState.UPDATE_STATE_IN_PROGRESS
+        ):
             return False
 
         return self.vehicle.state.software_update.percent_complete
@@ -103,6 +106,11 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
 
     async def async_update(self) -> None:
         """Update state of entity."""
+
+        _LOGGER.debug(
+            "async_update: latest_version = %s",
+            self.latest_version,
+        )
 
         update_release_notes = await self.api.get_update_release_notes(
             self.latest_version

@@ -6,7 +6,19 @@ from dataclasses import dataclass, field
 import logging
 from typing import cast
 
-from lucidmotors import Vehicle, AlarmMode, AlarmStatus, enum_to_str
+from lucidmotors import (
+    Vehicle,
+    AlarmMode,
+    AlarmStatus,
+    PaintColor,
+    Look,
+    Wheels,
+    PowerState,
+    EnergyType,
+    DriveMode,
+    GearPosition,
+    enum_to_str,
+)
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
 
 from homeassistant.components.sensor import (
@@ -217,6 +229,55 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         translation_key="alarm_status",
         icon="mdi:shield-lock",
         value=lambda value, _: enum_to_str(AlarmStatus, value),
+    ),
+    LucidSensorEntityDescription(
+        key="paint_color",
+        key_path=["config"],
+        translation_key="paint_color",
+        icon="mdi:palette",
+        value=lambda value, _: enum_to_str(PaintColor, value),
+    ),
+    LucidSensorEntityDescription(
+        key="look",
+        key_path=["config"],
+        translation_key="look",
+        icon="mdi:car-outline",
+        value=lambda value, _: enum_to_str(Look, value),
+    ),
+    LucidSensorEntityDescription(
+        key="wheels",
+        key_path=["config"],
+        translation_key="wheels",
+        icon="mdi:tire",
+        value=lambda value, _: enum_to_str(Wheels, value),
+    ),
+    LucidSensorEntityDescription(
+        key="power",
+        key_path=["state"],
+        translation_key="power_state",
+        icon="mdi:power-settings",
+        value=lambda value, _: enum_to_str(PowerState, value),
+    ),
+    LucidSensorEntityDescription(
+        key="energy_type",
+        key_path=["state", "charging"],
+        translation_key="energy_type",
+        icon="mdi:current-ac",
+        value=lambda value, _: enum_to_str(EnergyType, value),
+    ),
+    LucidSensorEntityDescription(
+        key="drive_mode",
+        key_path=["state"],
+        translation_key="drive_mode",
+        icon="mdi:car-settings",
+        value=lambda value, _: enum_to_str(DriveMode, value),
+    ),
+    LucidSensorEntityDescription(
+        key="gear_position",
+        key_path=["state"],
+        translation_key="gear_position",
+        icon="mdi:car-shift-pattern",
+        value=lambda value, _: enum_to_str(GearPosition, value),
     ),
 ]
 

@@ -74,7 +74,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="front_cargo",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.front_cargo != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.front_cargo
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "trunk": LucidBinarySensorEntityDescription(
         key="rear_cargo",
@@ -82,7 +83,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="rear_cargo",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.rear_cargo != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.rear_cargo
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "charge_port_door": LucidBinarySensorEntityDescription(
         key="charge_port",
@@ -90,7 +92,8 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         translation_key="charge_port_door",
         icon="mdi:door",
         device_class=BinarySensorDeviceClass.DOOR,
-        is_on_fn=lambda vehicle: vehicle.state.body.charge_port != DoorState.DOOR_STATE_CLOSED,
+        is_on_fn=lambda vehicle: vehicle.state.body.charge_port
+        != DoorState.DOOR_STATE_CLOSED,
     ),
     "walkaway_lock": LucidBinarySensorEntityDescription(
         key="walkaway_lock",

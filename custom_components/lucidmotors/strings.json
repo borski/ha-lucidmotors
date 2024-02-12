@@ -91,6 +91,27 @@
       },
       "alarm_status": {
         "name": "Alarm status"
+      },
+      "paint_color": {
+          "name": "Paint color"
+      },
+      "look": {
+          "name": "Look"
+      },
+      "wheels": {
+          "name": "Wheels"
+      },
+      "power_state": {
+          "name": "Power state"
+      },
+      "energy_type": {
+          "name": "Energy type"
+      },
+      "drive_mode": {
+          "name": "Drive mode"
+      },
+      "gear_position": {
+          "name": "Gear position"
       }
     },
     "binary_sensor": {
