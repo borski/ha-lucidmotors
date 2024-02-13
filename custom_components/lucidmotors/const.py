@@ -11,6 +11,9 @@ ATTR_VIN = "vin"
 # Base vehicle info refresh interval (seconds)
 DEFAULT_UPDATE_INTERVAL = 30
 
+# "Faster" interval used while vehicle is awake
+AWAKE_UPDATE_INTERVAL = 15
+
 # "Fast" refresh interval used when new information is expected for some reason
 FAST_UPDATE_INTERVAL = 5
 

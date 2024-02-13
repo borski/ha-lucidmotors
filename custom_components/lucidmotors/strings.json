@@ -112,6 +112,12 @@
       },
       "gear_position": {
           "name": "Gear position"
+      },
+      "speed": {
+          "name": "Speed"
+      },
+      "efficiency": {
+          "name": "Efficiency"
       }
     },
     "binary_sensor": {

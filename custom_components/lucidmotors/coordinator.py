@@ -5,13 +5,14 @@ import asyncio
 from datetime import timedelta, datetime
 import logging
 
-from lucidmotors import APIError, LucidAPI, Vehicle, StatusCode
+from lucidmotors import APIError, LucidAPI, Vehicle, StatusCode, PowerState
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     DEFAULT_UPDATE_INTERVAL,
+    AWAKE_UPDATE_INTERVAL,
     FAST_UPDATE_INTERVAL,
     FAST_UPDATE_TIMEOUT,
 )
@@ -56,7 +57,6 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             # If session will expire before our next update (* 1.5 for some wiggle
             # room), we should refresh our token now.
-            assert self.update_interval is not None
             async with asyncio.timeout(10):
                 if self.api.session_time_remaining < (self.update_interval * 1.5):
                     _LOGGER.info(
@@ -77,11 +77,18 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
             else:
                 raise UpdateFailed(f"Error communicating with API: {err}") from err
 
+        # Adjust our update interval based on vehicle state
+        idle_update_interval = DEFAULT_UPDATE_INTERVAL
+
         # Check if any expected vehicle config/state has changed
         updated_or_expired = []
         current_time = datetime.now()
 
         for vehicle in self.api.vehicles:
+            # If any vehicle is awake, let's poll more often
+            if vehicle.state.power != PowerState.POWER_STATE_SLEEP:
+                idle_update_interval = AWAKE_UPDATE_INTERVAL
+
             expected_updates = self._expected_updates.get(vehicle.config.vin, {})
             old_vehicle = self._vehicles.get(vehicle.config.vin, None)
 
@@ -136,9 +143,13 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
 
         # In fast update mode, check if we need to drop back down to the regular interval
         if updated_or_expired and not self._expected_updates:
-            self.update_interval = timedelta(seconds=DEFAULT_UPDATE_INTERVAL)
+            self.update_interval = timedelta(seconds=idle_update_interval)
             self._fast_update_timeout = None
             _LOGGER.info("Fast update mode DISengaged")
+        elif not self._expected_updates:
+            # Not in fast update mode, just make sure we switch to either the
+            # awake or default update interval depending on vehicle state.
+            self.update_interval = timedelta(seconds=idle_update_interval)
 
     def get_vehicle(self, vin: str) -> Vehicle | None:
         """Look up a Vehicle object by VIN."""

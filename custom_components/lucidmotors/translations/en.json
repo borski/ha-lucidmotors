@@ -136,6 +136,9 @@
             "drive_mode": {
                 "name": "Drive mode"
             },
+            "efficiency": {
+                "name": "Efficiency"
+            },
             "energy_type": {
                 "name": "Energy type"
             },
@@ -183,6 +186,9 @@
             },
             "remaining_range_total": {
                 "name": "Remaining range total"
+            },
+            "speed": {
+                "name": "Speed"
             },
             "wheels": {
                 "name": "Wheels"
