@@ -401,6 +401,10 @@ class LucidEfficiencySensor(LucidSensor):
         # Convert kWh to Wh
         charge_diff *= 1000.0
 
+        # What we're looking for is the rate of discharge, which is negative
+        # charge_diff.
+        charge_diff = -charge_diff
+
         # HA doesn't have automatic unit conversion for Wh/mi type units, so
         # we'll have to convert manually here to miles so us non-metric folks
         # can survive.
