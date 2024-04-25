@@ -1,16 +1,19 @@
 """Config flow for Lucid Motors integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI
+from lucidmotors import APIError, LucidAPI, Region
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.selector import selector
 
 from .const import DOMAIN
 
@@ -20,8 +23,36 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required("username"): str,
         vol.Required("password"): str,
+        vol.Required("region"): selector(
+            {
+                "select": {
+                    "options": ["United States", "Saudi Arabia", "Europe"],
+                },
+            }
+        ),
     }
 )
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version > 1:
+        # This means the user has downgraded from a future version
+        return False
+    if config_entry.version == 1:
+        new = {**config_entry.data}
+        if config_entry.minor_version < 2:
+            # Region was hardcoded to US previously
+            new["region"] = "United States"
+        hass.config_entries.async_update_entry(
+            config_entry, data=new, version=1, minor_version=2
+        )
+
+    _LOGGER.debug("Migration to version %s successful", config_entry.version)
+
+    return True
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
@@ -30,7 +61,17 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
 
-    api = LucidAPI()
+    match data["region"]:
+        case "United States":
+            region = Region.US
+        case "Saudi Arabia":
+            region = Region.SA
+        case "Europe":
+            region = Region.EU
+        case _:
+            raise ValueError("Unsupported region")
+
+    api = LucidAPI(region=region)
 
     try:
         await api.login(data["username"], data["password"])
