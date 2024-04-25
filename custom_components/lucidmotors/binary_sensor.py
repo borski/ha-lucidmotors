@@ -1,4 +1,5 @@
 """Support for reading vehicle status from Lucid API."""
+
 from __future__ import annotations
 
 from collections.abc import Callable

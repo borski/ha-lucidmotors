@@ -1,4 +1,5 @@
 """Device tracker for Lucid vehicles."""
+
 from __future__ import annotations
 
 import logging

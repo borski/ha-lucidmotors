@@ -1,4 +1,5 @@
 """Climate control entity for Lucid vehicles."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
