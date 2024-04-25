@@ -83,6 +83,7 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp: float = PRECONDITION_TEMPERATURE_MIN
     _attr_max_temp: float = PRECONDITION_TEMPERATURE_MAX
+    _attr_preset_mode: Optional[str] = None
     _attr_target_temperature: Optional[float] = DEFAULT_TARGET_TEMPERATURE
     _saved_target_temperature: float = DEFAULT_TARGET_TEMPERATURE
 

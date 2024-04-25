@@ -26,6 +26,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
     api: LucidAPI
     username: str
     password: str
+    update_interval: timedelta
 
     # Map of VIN -> Vehicle.
     _vehicles: dict[str, Vehicle]
