@@ -79,7 +79,10 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
     ]
     _attr_preset_modes = ["Normal", "Defrost"]
     _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
     )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp: float = PRECONDITION_TEMPERATURE_MIN
