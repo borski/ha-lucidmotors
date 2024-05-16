@@ -55,21 +55,25 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     return True
 
 
+def region_by_name(name: str) -> Region:
+    match name:
+        case "United States":
+            return Region.US
+        case "Saudi Arabia":
+            return Region.SA
+        case "Europe":
+            return Region.EU
+        case _:
+            raise ValueError("Unsupported region")
+
+
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect.
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
 
-    match data["region"]:
-        case "United States":
-            region = Region.US
-        case "Saudi Arabia":
-            region = Region.SA
-        case "Europe":
-            region = Region.EU
-        case _:
-            raise ValueError("Unsupported region")
+    region = region_by_name(data["region"])
 
     api = LucidAPI(region=region)
 

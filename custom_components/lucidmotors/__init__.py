@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, DOMAIN
 from .coordinator import LucidDataUpdateCoordinator
+from .config_flow import region_by_name
 
 PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
@@ -37,7 +38,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
-    api = LucidAPI(auto_wake=True)
+    region = region_by_name(entry.data["region"])
+    api = LucidAPI(auto_wake=True, region=region)
     await api.login(entry.data["username"], entry.data["password"])
     assert api.user is not None
 

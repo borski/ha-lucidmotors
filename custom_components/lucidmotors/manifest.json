@@ -13,6 +13,6 @@
     "markdownify==0.11.6"
   ],
   "ssdp": [],
-  "version": "1.0.5",
+  "version": "1.0.6",
   "zeroconf": []
 }
