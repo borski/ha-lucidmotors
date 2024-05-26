@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import logging
+
 from lucidmotors import LucidAPI, Vehicle, Model, ModelVariant, enum_to_str
 
 from homeassistant.config_entries import ConfigEntry
@@ -32,12 +34,36 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
 ]
 
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version > 1:
+        # This means the user has downgraded from a future version
+        return False
+    if config_entry.version == 1:
+        new = {**config_entry.data}
+        if config_entry.minor_version < 2 and "region" not in new:
+            # Region was hardcoded to US previously
+            new["region"] = "United States"
+        hass.config_entries.async_update_entry(
+            config_entry, data=new, version=1, minor_version=2
+        )
+
+    _LOGGER.debug("Migration to version %s successful", config_entry.version)
+
+    return True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Lucid Motors from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
 
+    _LOGGER.debug("Starting setup with config version %s.%s", entry.version, entry.minor_version)
     region = region_by_name(entry.data["region"])
     api = LucidAPI(auto_wake=True, region=region)
     await api.login(entry.data["username"], entry.data["password"])

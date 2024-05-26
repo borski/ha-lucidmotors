@@ -10,7 +10,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import selector
@@ -32,27 +31,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         ),
     }
 )
-
-
-async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Migrate old entry."""
-    _LOGGER.debug("Migrating from version %s", config_entry.version)
-
-    if config_entry.version > 1:
-        # This means the user has downgraded from a future version
-        return False
-    if config_entry.version == 1:
-        new = {**config_entry.data}
-        if config_entry.minor_version < 2:
-            # Region was hardcoded to US previously
-            new["region"] = "United States"
-        hass.config_entries.async_update_entry(
-            config_entry, data=new, version=1, minor_version=2
-        )
-
-    _LOGGER.debug("Migration to version %s successful", config_entry.version)
-
-    return True
 
 
 def region_by_name(name: str) -> Region:
@@ -95,6 +73,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Lucid Motors."""
 
     VERSION = 1
+    MINOR_VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
