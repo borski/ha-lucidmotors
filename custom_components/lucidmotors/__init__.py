@@ -63,7 +63,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
-    _LOGGER.debug("Starting setup with config version %s.%s", entry.version, entry.minor_version)
+    _LOGGER.debug(
+        "Starting setup with config version %s.%s", entry.version, entry.minor_version
+    )
     region = region_by_name(entry.data["region"])
     api = LucidAPI(auto_wake=True, region=region)
     await api.login(entry.data["username"], entry.data["password"])

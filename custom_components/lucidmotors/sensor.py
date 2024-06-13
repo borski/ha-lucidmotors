@@ -281,6 +281,35 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         icon="mdi:car-shift-pattern",
         value=lambda value, _: enum_to_str(GearPosition, value),
     ),
+    LucidSensorEntityDescription(
+        key="max_cell_temp",
+        key_path=["state", "battery"],
+        translation_key="max_cell_temp",
+        icon="mdi:thermometer-chevron-up",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        suggested_display_precision=1,
+    ),
+    LucidSensorEntityDescription(
+        key="min_cell_temp",
+        key_path=["state", "battery"],
+        translation_key="min_cell_temp",
+        icon="mdi:thermometer-chevron-down",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        suggested_display_precision=1,
+    ),
+    LucidSensorEntityDescription(
+        key="battery_health_level",
+        key_path=["state", "battery"],
+        translation_key="battery_health_level",
+        icon="mdi:stethoscope",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=PERCENTAGE,
+        suggested_display_precision=1,
+    ),
 ]
 
 

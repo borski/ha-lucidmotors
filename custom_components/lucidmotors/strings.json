@@ -119,6 +119,15 @@
       },
       "efficiency": {
           "name": "Efficiency"
+      },
+      "max_cell_temp": {
+          "name": "Maximum cell temperature"
+      },
+      "min_cell_temp": {
+          "name": "Minimum cell temperature"
+      },
+      "battery_health_level": {
+          "name": "Battery health level"
       }
     },
     "binary_sensor": {

@@ -193,6 +193,15 @@
             },
             "wheels": {
                 "name": "Wheels"
+            },
+            "max_cell_temp": {
+                "name": "Maximum cell temperature"
+            },
+            "min_cell_temp": {
+                "name": "Minimum cell temperature"
+            },
+            "battery_health_level": {
+                "name": "Battery health level"
             }
         },
         "select": {
