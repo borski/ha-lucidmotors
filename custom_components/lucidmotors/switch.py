@@ -7,7 +7,14 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, DefrostState, ChargeState
+from lucidmotors import (
+    APIError,
+    LucidAPI,
+    Vehicle,
+    DefrostState,
+    ChargeState,
+    BatteryPreconStatus,
+)
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -53,6 +60,16 @@ SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
         turn_on_function=lambda api, vehicle: api.start_charging(vehicle),
         turn_off_function=lambda api, vehicle: api.stop_charging(vehicle),
         on_value=ChargeState.CHARGE_STATE_CHARGING,
+    ),
+    LucidSwitchEntityDescription(
+        key="preconditioning_status",
+        key_path=["state", "battery"],
+        translation_key="battery_preconditioning",
+        icon="mdi:battery-plus-variant",
+        device_class=SwitchDeviceClass.SWITCH,
+        turn_on_function=lambda api, vehicle: api.battery_precon_on(vehicle),
+        turn_off_function=lambda api, vehicle: api.battery_precon_off(vehicle),
+        on_value=BatteryPreconStatus.BATTERY_PRECON_ON,
     ),
 )
 
@@ -113,6 +130,12 @@ class LucidSwitch(LucidBaseEntity, SwitchEntity):
         self._is_on = state == self.entity_description.on_value
         super()._handle_coordinator_update()
 
+    async def _expect_update(self) -> None:
+        await self.coordinator.expect_update(
+            self.vehicle.config.vin,
+            tuple([*self.entity_description.key_path, self.entity_description.key]),
+        )
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         try:
@@ -121,6 +144,7 @@ class LucidSwitch(LucidBaseEntity, SwitchEntity):
             # to revert to its previous state until the next API update
             self._is_on = True
             self.async_write_ha_state()
+            await self._expect_update()
         except APIError as ex:
             raise HomeAssistantError(ex) from ex
 
@@ -130,6 +154,7 @@ class LucidSwitch(LucidBaseEntity, SwitchEntity):
             await self.entity_description.turn_off_function(self.api, self.vehicle)
             self._is_on = False
             self.async_write_ha_state()
+            await self._expect_update()
         except APIError as ex:
             raise HomeAssistantError(ex) from ex
 

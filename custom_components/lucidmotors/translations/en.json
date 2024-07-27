@@ -212,6 +212,9 @@
         "switch": {
             "charging": {
                 "name": "Charging"
+            },
+            "battery_preconditioning": {
+                "name": "Battery preconditioning"
             }
         }
     }
