@@ -61,20 +61,20 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
             # room), we should refresh our token now.
             async with asyncio.timeout(10):
                 if self.api.session_time_remaining < (self.update_interval * 1.5):
-                    _LOGGER.info(
+                    _LOGGER.debug(
                         "Session expires in %r, refreshing token",
                         self.api.session_time_remaining,
                     )
                     await self.api.authentication_refresh()
             async with asyncio.timeout(10):
                 await self.api.fetch_vehicles()
-                _LOGGER.info("Vehicles: %r", self.api.vehicles)
+                _LOGGER.debug("Vehicles: %r", self.api.vehicles)
         except APIError as err:
             if err.code == StatusCode.UNAUTHENTICATED:  # token expired
                 # NOTE: This also updates vehicles. If we switch to a
                 # token-refreshing API, we'd have to also fetch_vehicles()
                 # here.
-                _LOGGER.info("Session expired, reauthenticating")
+                _LOGGER.debug("Session expired, reauthenticating")
                 await self.api.login(self.username, self.password)
             else:
                 raise UpdateFailed(f"Error communicating with API: {err}") from err
@@ -105,8 +105,8 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
                 new_value = vehicle
 
                 for key in path:
-                    _LOGGER.info("OLD: get %r from %r", key, old_value)
-                    _LOGGER.info("NEW: get %r from %r", key, new_value)
+                    _LOGGER.debug("OLD: get %r from %r", key, old_value)
+                    _LOGGER.debug("NEW: get %r from %r", key, new_value)
                     old_value = getattr(old_value, key)
                     new_value = getattr(new_value, key)
 
@@ -121,7 +121,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
                 else:
                     equal = old_value == new_value
 
-                _LOGGER.info(
+                _LOGGER.debug(
                     "State %s => %r equal? %r timeout? %r",
                     vehicle.config.vin,
                     path,

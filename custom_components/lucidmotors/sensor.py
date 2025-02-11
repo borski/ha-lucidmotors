@@ -310,6 +310,16 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         native_unit_of_measurement=PERCENTAGE,
         suggested_display_precision=1,
     ),
+    LucidSensorEntityDescription(
+        key="speed",
+        key_path=["state", "chassis"],
+        translation_key="speed",
+        icon="mdi:speedometer",
+        device_class=SensorDeviceClass.SPEED,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
+    ),
 ]
 
 
@@ -341,23 +351,6 @@ async def async_setup_entry(
                     translation_key="efficiency",
                     icon="mdi:lightning-bolt",
                     native_unit_of_measurement="Wh/mi",
-                ),
-            )
-        )
-
-        entities.append(
-            LucidSpeedSensor(
-                coordinator,
-                vehicle,
-                LucidSensorEntityDescription(
-                    key="speed",
-                    key_path=[],  # Unused
-                    translation_key="speed",
-                    icon="mdi:speedometer",
-                    device_class=SensorDeviceClass.SPEED,
-                    state_class=SensorStateClass.MEASUREMENT,
-                    suggested_display_precision=0,
-                    native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
                 ),
             )
         )
@@ -457,49 +450,6 @@ class LucidEfficiencySensor(LucidSensor):
         # Update saved
         self._saved_odometer = current_odometer
         self._saved_charge = current_charge
-
-        self._attr_native_value = cast(StateType, value)
-        super(LucidSensor, self)._handle_coordinator_update()
-
-
-class LucidSpeedSensor(LucidSensor):
-    """Driving speed sensor derived from Lucid API data."""
-
-    _saved_odometer: Optional[float] = None
-    _saved_timestamp: Optional[int] = None
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        _LOGGER.debug(
-            "Updating sensor '%s' of %s",
-            self.entity_description.key,
-            self.vehicle.config.nickname,
-        )
-
-        current_odometer = self.vehicle.state.chassis.odometer_km
-        current_timestamp = self.vehicle.state.last_updated_ms
-
-        if self._saved_odometer is None:
-            self._saved_odometer = current_odometer
-        if self._saved_timestamp is None:
-            self._saved_timestamp = current_timestamp
-
-        odo_diff = current_odometer - self._saved_odometer
-        time_diff = current_timestamp - self._saved_timestamp
-        # Milliseconds to (fractional) hours
-        time_diff /= 1000.0  # -> Seconds
-        time_diff /= 60.0  # -> Minutes
-        time_diff /= 60.0  # -> Hours
-
-        if time_diff == 0.0:
-            value = 0.0  # Avoid zero division
-        else:
-            value = odo_diff / time_diff
-
-        # Update saved
-        self._saved_timestamp = current_timestamp
-        self._saved_odometer = current_odometer
 
         self._attr_native_value = cast(StateType, value)
         super(LucidSensor, self)._handle_coordinator_update()
