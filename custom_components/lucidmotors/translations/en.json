@@ -207,6 +207,30 @@
         "select": {
             "alarm": {
               "name": "Alarm"
+            },
+            "driver_heater_backrest": {
+                "name": "Driver Backrest Heater"
+            },
+            "driver_heater_cushion": {
+                "name": "Driver Cushion Heater"
+            },
+            "front_passenger_heater_backrest": {
+                "name": "Front Passenger Backrest Heater"
+            },
+            "front_passenger_heater_cushion": {
+                "name": "Front Passenger Cushion Heater"
+            },
+            "rear_left_seat_heater": {
+                "name": "Rear Left Seat Heater"
+            },
+            "rear_center_seat_heater": {
+                "name": "Rear Center Seat Heater"
+            },
+            "rear_right_seat_heater": {
+                "name": "Rear Right Seat Heater"
+            },
+            "steering_heater": {
+                "name": "Steering Wheel Heater"
             }
         },
         "switch": {
