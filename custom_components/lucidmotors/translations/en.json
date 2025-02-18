@@ -214,11 +214,23 @@
             "driver_heater_cushion": {
                 "name": "Driver Cushion Heater"
             },
+            "driver_vent_backrest": {
+                "name": "Driver Backrest Ventilation"
+            },
+            "driver_vent_cushion": {
+                "name": "Driver Cushion Ventilation"
+            },
             "front_passenger_heater_backrest": {
                 "name": "Front Passenger Backrest Heater"
             },
             "front_passenger_heater_cushion": {
                 "name": "Front Passenger Cushion Heater"
+            },
+            "front_passenger_vent_backrest": {
+                "name": "Front Passenger Backrest Ventilation"
+            },
+            "front_passenger_vent_cushion": {
+                "name": "Front Passenger Cushion Ventilation"
             },
             "rear_left_seat_heater": {
                 "name": "Rear Left Seat Heater"

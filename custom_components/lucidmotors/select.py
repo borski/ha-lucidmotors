@@ -130,6 +130,32 @@ SELECT_TYPES: tuple[LucidSelectEntityDescription, ...] = (
         enum_type=SeatClimateMode,
     ),
     LucidSelectEntityDescription(
+        key="driver_vent_backrest",
+        key_path=["state", "hvac", "seats"],
+        translation_key="driver_vent_backrest",
+        icon="mdi:car-seat-cooler",
+        options=[*OPTION_TO_MODE_MAP[SeatClimateMode]],
+        select_fn=lambda api, vehicle, mode: api.seat_climate_control(
+            vehicle, driver_vent_backrest=mode
+        ),
+        prereq_fn=lambda vehicle: vehicle.config.front_seats_ventilation
+        == FrontSeatsVentilationAvailability.FRONT_SEATS_VENTILATION_AVAILABLE,
+        enum_type=SeatClimateMode,
+    ),
+    LucidSelectEntityDescription(
+        key="driver_vent_cushion",
+        key_path=["state", "hvac", "seats"],
+        translation_key="driver_vent_cushion",
+        icon="mdi:car-seat-cooler",
+        options=[*OPTION_TO_MODE_MAP[SeatClimateMode]],
+        select_fn=lambda api, vehicle, mode: api.seat_climate_control(
+            vehicle, driver_vent_cushion=mode
+        ),
+        prereq_fn=lambda vehicle: vehicle.config.front_seats_ventilation
+        == FrontSeatsVentilationAvailability.FRONT_SEATS_VENTILATION_AVAILABLE,
+        enum_type=SeatClimateMode,
+    ),
+    LucidSelectEntityDescription(
         key="front_passenger_heat_backrest_zone3",
         key_path=["state", "hvac", "seats"],
         translation_key="front_passenger_heater_backrest",
@@ -157,6 +183,32 @@ SELECT_TYPES: tuple[LucidSelectEntityDescription, ...] = (
         ),
         prereq_fn=lambda vehicle: vehicle.config.front_seats_heating
         == FrontSeatsHeatingAvailability.FRONT_SEATS_HEATING_AVAILABLE,
+        enum_type=SeatClimateMode,
+    ),
+    LucidSelectEntityDescription(
+        key="front_passenger_vent_backrest",
+        key_path=["state", "hvac", "seats"],
+        translation_key="front_passenger_vent_backrest",
+        icon="mdi:car-seat-cooler",
+        options=[*OPTION_TO_MODE_MAP[SeatClimateMode]],
+        select_fn=lambda api, vehicle, mode: api.seat_climate_control(
+            vehicle, front_passenger_vent_backrest=mode
+        ),
+        prereq_fn=lambda vehicle: vehicle.config.front_seats_ventilation
+        == FrontSeatsVentilationAvailability.FRONT_SEATS_VENTILATION_AVAILABLE,
+        enum_type=SeatClimateMode,
+    ),
+    LucidSelectEntityDescription(
+        key="front_passenger_vent_cushion",
+        key_path=["state", "hvac", "seats"],
+        translation_key="front_passenger_vent_cushion",
+        icon="mdi:car-seat-cooler",
+        options=[*OPTION_TO_MODE_MAP[SeatClimateMode]],
+        select_fn=lambda api, vehicle, mode: api.seat_climate_control(
+            vehicle, front_passenger_vent_cushion=mode
+        ),
+        prereq_fn=lambda vehicle: vehicle.config.front_seats_ventilation
+        == FrontSeatsVentilationAvailability.FRONT_SEATS_VENTILATION_AVAILABLE,
         enum_type=SeatClimateMode,
     ),
     LucidSelectEntityDescription(
