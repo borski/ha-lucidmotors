@@ -18,6 +18,7 @@ from lucidmotors import (
     EnergyType,
     DriveMode,
     GearPosition,
+    TcuDownloadStatus,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -257,6 +258,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         key="power",
         key_path=["state"],
         translation_key="power_state",
+        device_class=SensorDeviceClass.ENUM,
         icon="mdi:power-settings",
         value=lambda value, _: enum_to_str(PowerState, value),
     ),
@@ -320,6 +322,14 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         suggested_display_precision=0,
         native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
     ),
+    LucidSensorEntityDescription(
+        key="tcu_download_status",
+        key_path=["state", "software_update"],
+        translation_key="update_download_status",
+        icon="mdi:cloud-download",
+        device_class=SensorDeviceClass.ENUM,
+        value=lambda value, _: enum_to_str(TcuDownloadStatus, value),
+    ),
 ]
 
 
@@ -341,18 +351,33 @@ async def async_setup_entry(
             ]
         )
 
-        entities.append(
-            LucidEfficiencySensor(
-                coordinator,
-                vehicle,
-                LucidSensorEntityDescription(
-                    key="efficiency",
-                    key_path=[],  # Unused
-                    translation_key="efficiency",
-                    icon="mdi:lightning-bolt",
-                    native_unit_of_measurement="Wh/mi",
+        entities.extend(
+            [
+                LucidEfficiencySensor(
+                    coordinator,
+                    vehicle,
+                    LucidSensorEntityDescription(
+                        key="efficiency",
+                        key_path=[],  # Unused
+                        translation_key="efficiency",
+                        icon="mdi:lightning-bolt",
+                        native_unit_of_measurement="Wh/mi",
+                    ),
                 ),
-            )
+                LucidPowerSensor(
+                    coordinator,
+                    vehicle,
+                    LucidSensorEntityDescription(
+                        key="power_usage",
+                        key_path=[],  # Unused
+                        translation_key="power_usage",
+                        icon="mdi:meter-electric",
+                        device_class=SensorDeviceClass.POWER,
+                        state_class=SensorStateClass.MEASUREMENT,
+                        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+                    ),
+                ),
+            ]
         )
 
     async_add_entities(entities)
@@ -449,6 +474,53 @@ class LucidEfficiencySensor(LucidSensor):
 
         # Update saved
         self._saved_odometer = current_odometer
+        self._saved_charge = current_charge
+
+        self._attr_native_value = cast(StateType, value)
+        super(LucidSensor, self)._handle_coordinator_update()
+
+
+class LucidPowerSensor(LucidSensor):
+    """Momentary power usage sensor derived from Lucid API data."""
+
+    _saved_last_updated_ms: Optional[int] = None
+    _saved_charge: Optional[float] = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        _LOGGER.debug(
+            "Updating sensor '%s' of %s",
+            self.entity_description.key,
+            self.vehicle.config.nickname,
+        )
+
+        current_update_ms = self.vehicle.state.last_updated_ms
+        current_charge = self.vehicle.state.battery.kwhr
+
+        if self._saved_last_updated_ms is None:
+            self._saved_last_updated_ms = current_update_ms
+        if self._saved_charge is None:
+            self._saved_charge = current_charge
+
+        time_diff_ms = current_update_ms - self._saved_last_updated_ms
+        charge_diff = current_charge - self._saved_charge
+
+        # What we're looking for is the rate of discharge, which is negative
+        # charge_diff.
+        charge_diff = -charge_diff
+
+        time_diff_h = time_diff_ms / 3600000.0
+
+        if time_diff_h == 0:
+            # Sensors have not been updated. Also avoid zero division.
+            value = None
+        else:
+            # kWh / h, aka kW
+            value = charge_diff / time_diff_h
+
+        # Update saved
+        self._saved_last_updated_ms = current_update_ms
         self._saved_charge = current_charge
 
         self._attr_native_value = cast(StateType, value)

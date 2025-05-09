@@ -128,6 +128,12 @@
       },
       "battery_health_level": {
           "name": "Battery health level"
+      },
+      "power_usage": {
+        "name": "Power usage"
+      },
+      "update_download_status": {
+        "name": "Update download status"
       }
     },
     "binary_sensor": {
@@ -210,6 +216,21 @@
       },
       "front_cargo": {
         "name": "Frunk"
+      },
+      "left_front_window": {
+        "name": "Front left window"
+      },
+      "right_front_window": {
+        "name": "Front right window"
+      },
+      "left_rear_window": {
+        "name": "Rear left window"
+      },
+      "right_rear_window": {
+        "name": "Rear right window"
+      },
+      "all_windows": {
+        "name": "All windows"
       }
     },
     "number": {

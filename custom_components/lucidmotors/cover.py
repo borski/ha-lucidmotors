@@ -7,7 +7,15 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, DoorState, StrutType
+from lucidmotors import (
+    APIError,
+    LucidAPI,
+    Vehicle,
+    DoorState,
+    StrutType,
+    WindowPositionStatus,
+    AllWindowPosition,
+)
 
 from homeassistant.components.cover import (
     CoverDeviceClass,
@@ -32,9 +40,13 @@ class LucidCoverEntityDescriptionMixin:
     """Mixin to describe a Lucid cover entity."""
 
     key_path: list[str]
-    open_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]]
-    close_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]]
-    open_value: Any
+    open_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]] | None
+    close_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]] | None
+    is_open: Callable[[Vehicle, Any], bool]
+    is_closed: Callable[[Vehicle, Any], bool] | None
+    position: Callable[[Vehicle, Any], int | None] | None
+    features: CoverEntityFeature
+    cover_device_class: CoverDeviceClass
 
 
 @dataclass(frozen=True)
@@ -44,33 +56,133 @@ class LucidCoverEntityDescription(
     """Describes Lucid cover entity."""
 
 
+# Kind of arbitrary relative mapping of strange overly verbose "how open is my
+# window" descriptions from Lucid to percentages for the HA Cover entity
+# TODO: WINDOW_POSITION_STATUS_BETWEEN_FULLY_CLOSED_AND_SHORT_DROP_DOWN goes where?
+WINDOW_POSITION_AS_PERCENT = {
+    WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED: 0,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_ABOVE_SHORT_DROP_POSITION: 25,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_SHORT_DROP_POSITION: 50,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_BETWEEN_SHORT_DROP_DOWN_AND_FULLY_OPEN: 50,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_BELOW_SHORT_DROP_POSITION: 75,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN: 100,
+}
+
+
 COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
     LucidCoverEntityDescription(
         key="charge_port",
         key_path=["state", "body"],
         translation_key="charge_port_door",
         icon="mdi:ev-plug-ccs1",
-        open_value=DoorState.DOOR_STATE_OPEN,
+        is_open=lambda vehicle, state: state == DoorState.DOOR_STATE_OPEN,
+        is_closed=None,
+        position=None,
         close_function=lambda api, vehicle: api.charge_port_close(vehicle),
         open_function=lambda api, vehicle: api.charge_port_open(vehicle),
+        features=CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE,
+        cover_device_class=CoverDeviceClass.DOOR,
     ),
     LucidCoverEntityDescription(
         key="rear_cargo",
         key_path=["state", "body"],
         translation_key="rear_cargo",
         icon="mdi:car-sports",
-        open_value=DoorState.DOOR_STATE_OPEN,
+        is_open=lambda vehicle, state: state == DoorState.DOOR_STATE_OPEN,
+        is_closed=None,
+        position=None,
         close_function=lambda api, vehicle: api.trunk_close(vehicle),
         open_function=lambda api, vehicle: api.trunk_open(vehicle),
+        features=CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE,
+        cover_device_class=CoverDeviceClass.DOOR,
     ),
     LucidCoverEntityDescription(
         key="front_cargo",
         key_path=["state", "body"],
         translation_key="front_cargo",
         icon="mdi:car-sports",
-        open_value=DoorState.DOOR_STATE_OPEN,
+        is_open=lambda vehicle, state: state == DoorState.DOOR_STATE_OPEN,
+        is_closed=None,
+        position=None,
         close_function=lambda api, vehicle: api.frunk_close(vehicle),
         open_function=lambda api, vehicle: api.frunk_open(vehicle),
+        features=CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE,
+        cover_device_class=CoverDeviceClass.DOOR,
+    ),
+    LucidCoverEntityDescription(
+        key="left_front",
+        key_path=["state", "body", "window_position"],
+        translation_key="left_front_window",
+        icon="mdi:car-door",
+        is_open=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
+        is_closed=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
+        close_function=None,
+        open_function=None,
+        features=0,
+        cover_device_class=CoverDeviceClass.WINDOW,
+    ),
+    LucidCoverEntityDescription(
+        key="right_front",
+        key_path=["state", "body", "window_position"],
+        translation_key="right_front_window",
+        icon="mdi:car-door",
+        is_open=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
+        is_closed=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
+        close_function=None,
+        open_function=None,
+        features=0,
+        cover_device_class=CoverDeviceClass.WINDOW,
+    ),
+    LucidCoverEntityDescription(
+        key="left_rear",
+        key_path=["state", "body", "window_position"],
+        translation_key="left_rear_window",
+        icon="mdi:car-door",
+        is_open=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
+        is_closed=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
+        close_function=None,
+        open_function=None,
+        features=0,
+        cover_device_class=CoverDeviceClass.WINDOW,
+    ),
+    LucidCoverEntityDescription(
+        key="right_rear",
+        key_path=["state", "body", "window_position"],
+        translation_key="right_rear_window",
+        icon="mdi:car-door",
+        is_open=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
+        is_closed=lambda vehicle, state: state
+        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
+        close_function=None,
+        open_function=None,
+        features=0,
+        cover_device_class=CoverDeviceClass.WINDOW,
+    ),
+    LucidCoverEntityDescription(
+        key="all_windows_position",
+        key_path=["state", "body"],
+        translation_key="all_windows",
+        icon="mdi:car-door",
+        is_open=lambda vehicle, state: state
+        == AllWindowPosition.ALL_WINDOW_POSITION_OPEN,
+        is_closed=lambda vehicle, state: state
+        == AllWindowPosition.ALL_WINDOW_POSITION_CLOSED,
+        position=None,
+        close_function=lambda api, vehicle: api.close_all_windows(vehicle),
+        open_function=lambda api, vehicle: api.open_all_windows(vehicle),
+        features=CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE,
+        cover_device_class=CoverDeviceClass.WINDOW,
     ),
 )
 
@@ -112,16 +224,9 @@ class LucidCover(LucidBaseEntity, CoverEntity):
         super().__init__(coordinator, vehicle)
         self.entity_description = description
         self.api = coordinator.api
-        self._attr_unique_id = f"{vehicle.config.vin}-{description.key}"
-        self._attr_supported_features = CoverEntityFeature.OPEN
-        # Note: Pure's frunk has STRUT_TYPE_GAS, not powered open/close. Close
-        # doesn't actually do anything.
-        if (
-            description.key != "front_cargo"
-            or vehicle.config.frunk_strut == StrutType.STRUT_TYPE_POWER
-        ):
-            self._attr_supported_features |= CoverEntityFeature.CLOSE
-        self._attr_device_class = CoverDeviceClass.DOOR
+        self._attr_unique_id = f"{vehicle.config.vin}-{description.translation_key}"
+        self._attr_supported_features = description.features
+        self._attr_device_class = description.cover_device_class
 
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close cover."""
@@ -132,6 +237,7 @@ class LucidCover(LucidBaseEntity, CoverEntity):
             self.vehicle.config.nickname,
         )
 
+        assert self.entity_description.close_function is not None
         try:
             await self.entity_description.close_function(self.api, self.vehicle)
             # Update our local state for the entity so that it doesn't appear
@@ -150,6 +256,7 @@ class LucidCover(LucidBaseEntity, CoverEntity):
             self.vehicle.config.nickname,
         )
 
+        assert self.entity_description.open_function is not None
         try:
             await self.entity_description.open_function(self.api, self.vehicle)
             self._attr_is_closed = False
@@ -177,5 +284,23 @@ class LucidCover(LucidBaseEntity, CoverEntity):
             state = getattr(state, attr)
         state = getattr(state, self.entity_description.key)
 
-        self._attr_is_closed = state != self.entity_description.open_value
+        if self.entity_description.is_closed is None:
+            self._attr_is_closed = not self.entity_description.is_open(
+                self.vehicle, state
+            )
+        else:
+            self._attr_is_closed = self.entity_description.is_closed(
+                self.vehicle, state
+            )
+
+        if self.entity_description.position is not None:
+            self._attr_current_cover_position = self.entity_description.position(
+                self.vehicle, state
+            )
+            _LOGGER.debug(
+                "Cover position '%s' is %r",
+                self.entity_description.key,
+                self._attr_current_cover_position,
+            )
+
         super()._handle_coordinator_update()

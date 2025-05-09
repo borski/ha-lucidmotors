@@ -12,10 +12,10 @@ ATTR_VIN = "vin"
 DEFAULT_UPDATE_INTERVAL = 30
 
 # "Faster" interval used while vehicle is awake
-AWAKE_UPDATE_INTERVAL = 15
+AWAKE_UPDATE_INTERVAL = 7
 
 # "Fast" refresh interval used when new information is expected for some reason
-FAST_UPDATE_INTERVAL = 5
+FAST_UPDATE_INTERVAL = 3
 
 # Timeout for fast updates in case data does not actually change
 FAST_UPDATE_TIMEOUT = 2 * 60
