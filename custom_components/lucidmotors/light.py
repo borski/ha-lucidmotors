@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, LightState
+from lucidmotors import APIError, LucidAPI, Vehicle, LightAction
 
 from homeassistant.components.light import (
     ATTR_FLASH,
@@ -56,8 +56,8 @@ LIGHT_TYPES: tuple[LucidLightEntityDescription, ...] = (
         turn_on_function=lambda api, vehicle: api.lights_on(vehicle),
         turn_off_function=lambda api, vehicle: api.lights_off(vehicle),
         flash_function=lambda api, vehicle: api.lights_flash(vehicle),
-        off_value=LightState.LIGHT_STATE_OFF,
-        on_value=LightState.LIGHT_STATE_ON,
+        off_value=LightAction.LIGHT_ACTION_OFF,
+        on_value=LightAction.LIGHT_ACTION_ON,
     ),
 )
 

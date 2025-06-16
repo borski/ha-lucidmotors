@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import selector
 
@@ -25,7 +25,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required("region"): selector(
             {
                 "select": {
-                    "options": ["United States", "Saudi Arabia", "Europe"],
+                    "options": ["United States", "Saudi Arabia", "Europe", "Middle East"],
                 },
             }
         ),
@@ -38,9 +38,12 @@ def region_by_name(name: str) -> Region:
         case "United States":
             return Region.US
         case "Saudi Arabia":
-            return Region.SA
+            # Backwards compatibility: SA region is deprecated
+            return Region.ME
         case "Europe":
             return Region.EU
+        case "Middle East":
+            return Region.ME
         case _:
             raise ValueError("Unsupported region")
 
@@ -66,7 +69,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     assert user is not None  # if we logged in, we are a user
 
-    return {"title": user.username}
+    return {"title": user.email}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -77,7 +80,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:

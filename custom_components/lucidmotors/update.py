@@ -11,7 +11,7 @@ from lucidmotors import Vehicle, APIError, UpdateState
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -33,9 +33,6 @@ async def async_setup_entry(
 
     for vehicle in coordinator.api.vehicles:
         entities.append(LucidUpdateEntity(coordinator, vehicle))
-
-    for entity in entities:
-        await entity.async_update()
 
     async_add_entities(entities)
 
@@ -74,19 +71,15 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
             return self.installed_version
         return self.vehicle.state.software_update.version_available
 
-    @property
-    def in_progress(self) -> bool | int:
-        """Return whether the update is in progress, and at what percentage."""
-        if (
-            self.vehicle.state.software_update.state
-            != UpdateState.UPDATE_STATE_IN_PROGRESS
-        ):
-            return False
-
-        return self.vehicle.state.software_update.percent_complete
-
     async def async_release_notes(self) -> str | None:
         """Return the release notes."""
+
+        update_release_notes = await self.api.get_update_release_notes(
+            self.latest_version
+        )
+
+        self._attr_release_url = update_release_notes.url
+        self._attr_release_summary = update_release_notes.info.description
 
         async with httpx.AsyncClient() as client:
             try:
@@ -105,20 +98,27 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
             except Exception as ex:
                 raise HomeAssistantError(ex) from ex
 
-    async def async_update(self) -> None:
-        """Update state of entity."""
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
 
         _LOGGER.debug(
-            "async_update: latest_version = %s",
+            "latest_version for %s = %s",
+            self.vehicle.config.vin,
             self.latest_version,
         )
 
-        update_release_notes = await self.api.get_update_release_notes(
-            self.latest_version
+        self._attr_in_progress = (
+            self.vehicle.state.software_update.state
+            == UpdateState.UPDATE_STATE_IN_PROGRESS
         )
 
-        self._attr_release_url = update_release_notes.url
-        self._attr_release_summary = update_release_notes.info.description
+        if self._attr_in_progress:
+            self._attr_update_percentage = (
+                self.vehicle.state.software_update.percent_complete
+            )
+        else:
+            self._attr_update_percentage = None
 
     async def async_install(self, version, backup: bool, **kwargs: Any) -> None:
         """Install an Update."""

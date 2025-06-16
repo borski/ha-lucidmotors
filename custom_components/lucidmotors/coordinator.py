@@ -21,7 +21,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class LucidDataUpdateCoordinator(DataUpdateCoordinator):
+class LucidDataUpdateCoordinator(DataUpdateCoordinator[None]):
     """Lucid API update coordinator."""
 
     api: LucidAPI
@@ -45,7 +45,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"Lucid account {api.user.username}",
+            name=f"Lucid account {api.user.email}",
             update_interval=timedelta(seconds=DEFAULT_UPDATE_INTERVAL),
         )
         self.api = api

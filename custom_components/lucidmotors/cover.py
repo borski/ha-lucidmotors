@@ -121,7 +121,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
-        features=0,
+        features=CoverEntityFeature(0),
         cover_device_class=CoverDeviceClass.WINDOW,
     ),
     LucidCoverEntityDescription(
@@ -136,7 +136,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
-        features=0,
+        features=CoverEntityFeature(0),
         cover_device_class=CoverDeviceClass.WINDOW,
     ),
     LucidCoverEntityDescription(
@@ -151,7 +151,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
-        features=0,
+        features=CoverEntityFeature(0),
         cover_device_class=CoverDeviceClass.WINDOW,
     ),
     LucidCoverEntityDescription(
@@ -166,7 +166,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
-        features=0,
+        features=CoverEntityFeature(0),
         cover_device_class=CoverDeviceClass.WINDOW,
     ),
     LucidCoverEntityDescription(
