@@ -107,6 +107,9 @@
         "number": {
             "charging_target": {
                 "name": "Charge limit"
+            },
+            "ac_charge_current_limit": {
+                "name": "AC charge current limit"
             }
         },
         "sensor": {

@@ -10,6 +10,7 @@ from lucidmotors import Vehicle, APIError, LucidAPI
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
 from homeassistant.const import PERCENTAGE
+from homeassistant.const import UnitOfElectricCurrent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -53,6 +54,22 @@ NUMBER_TYPES: tuple[LucidNumberEntityDescription, ...] = (
             vehicle.state.charging.charge_limit_percent
         ),
         set_native_value_fn=lambda api, vehicle, value: api.set_charge_limit(
+            vehicle, round(value)
+        ),
+    ),
+    LucidNumberEntityDescription(
+        key="active_session_ac_current_limit",
+        key_path=["state", "charging"],
+        translation_key="ac_charge_current_limit",
+        icon="mdi:current-ac",
+        native_step=1,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        native_min_value=10.0,
+        native_max_value=80.0,
+        native_value_fn=lambda vehicle: round(
+            vehicle.state.charging.active_session_ac_current_limit
+        ),
+        set_native_value_fn=lambda api, vehicle, value: api.set_ac_current_limit(
             vehicle, round(value)
         ),
     ),
