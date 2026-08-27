@@ -50,6 +50,15 @@
             },
             "walkaway_lock": {
                 "name": "Walkaway lock"
+            },
+            "keyfob_battery_low": {
+                "name": "Key fob battery low"
+            },
+            "lte_connected": {
+                "name": "LTE connected"
+            },
+            "wifi_connected": {
+                "name": "Wi-Fi connected"
             }
         },
         "button": {
@@ -226,6 +235,15 @@
             },
             "update_download_status": {
               "name": "Update download status"
+            },
+            "lte_type": {
+                "name": "LTE type"
+            },
+            "lte_signal_strength": {
+                "name": "LTE signal strength"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
             }
         },
         "select": {
