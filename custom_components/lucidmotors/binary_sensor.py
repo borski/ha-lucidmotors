@@ -6,7 +6,18 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 
-from lucidmotors import Vehicle, WalkawayState, DoorState, HvacPower, ChargeState
+from lucidmotors import (
+    Vehicle,
+    WalkawayState,
+    DoorState,
+    HvacPower,
+    ChargeState,
+    InternetStatus,
+)
+
+# KeyfobBatteryStatus is not re-exported from the lucidmotors package in
+# 1.4.1, so it has to come from the generated module directly.
+from lucidmotors.gen.vehicle_state_service_pb2 import KeyfobBatteryStatus
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -119,6 +130,33 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.PLUG,
         is_on_fn=lambda vehicle: vehicle.state.charging.charge_state
         != ChargeState.Value('CHARGE_STATE_NOT_CONNECTED'),
+    ),
+    "keyfob_battery_low": LucidBinarySensorEntityDescription(
+        key="keyfob_battery_status",
+        key_path=["state", "body"],
+        translation_key="keyfob_battery_low",
+        icon="mdi:key-wireless",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        is_on_fn=lambda vehicle: vehicle.state.body.keyfob_battery_status
+        == KeyfobBatteryStatus.KEYFOB_BATTERY_STATUS_LOW,
+    ),
+    "lte_connected": LucidBinarySensorEntityDescription(
+        key="lte_status",
+        key_path=["state", "tcu_internet"],
+        translation_key="lte_connected",
+        icon="mdi:signal",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        is_on_fn=lambda vehicle: vehicle.state.tcu_internet.lte_status
+        == InternetStatus.INTERNET_CONNECTED,
+    ),
+    "wifi_connected": LucidBinarySensorEntityDescription(
+        key="wifi_status",
+        key_path=["state", "tcu_internet"],
+        translation_key="wifi_connected",
+        icon="mdi:wifi",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        is_on_fn=lambda vehicle: vehicle.state.tcu_internet.wifi_status
+        == InternetStatus.INTERNET_CONNECTED,
     ),
 }
 

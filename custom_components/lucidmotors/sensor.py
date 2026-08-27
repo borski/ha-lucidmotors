@@ -19,6 +19,7 @@ from lucidmotors import (
     DriveMode,
     GearPosition,
     TcuDownloadStatus,
+    LteType,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -32,6 +33,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     UnitOfEnergy,
     UnitOfLength,
     UnitOfPower,
@@ -41,6 +43,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.util.unit_conversion import DistanceConverter
@@ -329,6 +332,42 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         icon="mdi:cloud-download",
         device_class=SensorDeviceClass.ENUM,
         value=lambda value, _: enum_to_str(TcuDownloadStatus, value),
+    ),
+    LucidSensorEntityDescription(
+        key="lte_type",
+        key_path=["state", "tcu_internet"],
+        translation_key="lte_type",
+        icon="mdi:signal-4g",
+        device_class=SensorDeviceClass.ENUM,
+        # lucidmotors 1.4.1 only defines 3G and 4G; anything else (including
+        # LTE_TYPE_UNKNOWN) is reported as unknown rather than invented.
+        options=["3G", "4G"],
+        value=lambda value, _: {
+            LteType.LTE_TYPE_3G: "3G",
+            LteType.LTE_TYPE_4G: "4G",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="lte_rssi",
+        key_path=["state", "tcu_internet"],
+        translation_key="lte_signal_strength",
+        icon="mdi:signal",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        # The TCU reports 0 when it has no LTE signal at all.
+        value=lambda value, _: None if value == 0 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="wifi_rssi",
+        key_path=["state", "tcu_internet"],
+        translation_key="wifi_signal_strength",
+        icon="mdi:wifi",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        # As above: 0 means "not associated", not "0 dBm".
+        value=lambda value, _: None if value == 0 else value,
     ),
 ]
 
