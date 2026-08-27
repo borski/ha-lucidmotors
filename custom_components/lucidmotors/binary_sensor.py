@@ -14,6 +14,7 @@ from lucidmotors import (
     ChargeState,
     InternetStatus,
     KeyfobBatteryStatus,
+    LockState,
 )
 
 from homeassistant.components.binary_sensor import (
@@ -154,6 +155,19 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         is_on_fn=lambda vehicle: vehicle.state.tcu_internet.wifi_status
         == InternetStatus.INTERNET_CONNECTED,
+    ),
+    "cable_lock": LucidBinarySensorEntityDescription(
+        key="cable_lock",
+        key_path=["state", "charging"],
+        translation_key="charge_cable_lock",
+        icon="mdi:lock-outline",
+        device_class=BinarySensorDeviceClass.LOCK,
+        # BinarySensorDeviceClass.LOCK is on == unlocked. LOCK_STATE_UNKNOWN
+        # is reported as unknown rather than being lumped in with unlocked.
+        is_on_fn=lambda vehicle: {
+            LockState.LOCK_STATE_LOCKED: False,
+            LockState.LOCK_STATE_UNLOCKED: True,
+        }.get(vehicle.state.charging.cable_lock),
     ),
 }
 

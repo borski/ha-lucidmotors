@@ -20,6 +20,7 @@ from lucidmotors import (
     GearPosition,
     TcuDownloadStatus,
     LteType,
+    ScheduledChargeState,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -35,6 +36,7 @@ from homeassistant.const import (
     DEGREE,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    UnitOfElectricCurrent,
     UnitOfEnergy,
     UnitOfLength,
     UnitOfPower,
@@ -433,6 +435,43 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
         # As above: 0 means "not associated", not "0 dBm".
         value=lambda value, _: None if value == 0 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="active_session_ac_current_limit",
+        key_path=["state", "charging"],
+        translation_key="active_session_ac_current_limit",
+        icon="mdi:current-ac",
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        suggested_display_precision=0,
+        # 0 means there is no active session, not a 0 A limit.
+        value=lambda value, _: None if value == 0 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="port_power",
+        key_path=["state", "charging"],
+        translation_key="charge_port_power",
+        icon="mdi:ev-plug-type2",
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.KILO_WATT,
+        suggested_display_precision=1,
+        # Sub-milliwatt readings are floating point noise, not charging.
+        value=lambda value, _: None if value < 0.001 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="scheduled_charge",
+        key_path=["state", "charging"],
+        translation_key="scheduled_charge_state",
+        icon="mdi:calendar-clock",
+        device_class=SensorDeviceClass.ENUM,
+        options=["idle", "scheduled", "charging_soon"],
+        value=lambda value, _: {
+            ScheduledChargeState.SCHEDULED_CHARGE_STATE_IDLE: "idle",
+            ScheduledChargeState.SCHEDULED_CHARGE_STATE_SCHEDULED_TO_CHARGE: "scheduled",
+            ScheduledChargeState.SCHEDULED_CHARGE_STATE_REQUEST_TO_CHARGE: "charging_soon",
+        }.get(value),
     ),
 ]
 
