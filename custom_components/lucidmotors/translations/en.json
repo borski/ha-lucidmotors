@@ -50,6 +50,9 @@
             },
             "walkaway_lock": {
                 "name": "Walkaway lock"
+            },
+            "defrost": {
+                "name": "Defrost"
             }
         },
         "button": {
@@ -226,6 +229,32 @@
             },
             "update_download_status": {
               "name": "Update download status"
+            },
+            "preconditioning_time_remaining": {
+                "name": "Battery preconditioning time remaining"
+            },
+            "unavailable_range": {
+                "name": "Unavailable range"
+            },
+            "keep_climate_status": {
+                "name": "Keep climate status",
+                "state": {
+                    "inactive": "Inactive",
+                    "enabled": "Enabled",
+                    "canceled": "Canceled",
+                    "pet_mode": "Pet mode"
+                }
+            },
+            "motor_fault_status": {
+                "name": "Motor fault status",
+                "state": {
+                    "normal": "Normal",
+                    "warning": "Warning",
+                    "critical": "Critical fault",
+                    "warning_protection": "Warning (protection system)",
+                    "critical_protection": "Critical (protection system)",
+                    "critical_hardware": "Critical hardware fault"
+                }
             }
         },
         "select": {
