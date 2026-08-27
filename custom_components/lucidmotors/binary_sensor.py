@@ -6,7 +6,14 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 
-from lucidmotors import Vehicle, WalkawayState, DoorState, HvacPower, ChargeState
+from lucidmotors import (
+    Vehicle,
+    WalkawayState,
+    DoorState,
+    HvacPower,
+    ChargeState,
+    LockState,
+)
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -119,6 +126,19 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         device_class=BinarySensorDeviceClass.PLUG,
         is_on_fn=lambda vehicle: vehicle.state.charging.charge_state
         != ChargeState.Value('CHARGE_STATE_NOT_CONNECTED'),
+    ),
+    "cable_lock": LucidBinarySensorEntityDescription(
+        key="cable_lock",
+        key_path=["state", "charging"],
+        translation_key="charge_cable_lock",
+        icon="mdi:lock-outline",
+        device_class=BinarySensorDeviceClass.LOCK,
+        # BinarySensorDeviceClass.LOCK is on == unlocked. LOCK_STATE_UNKNOWN
+        # is reported as unknown rather than being lumped in with unlocked.
+        is_on_fn=lambda vehicle: {
+            LockState.LOCK_STATE_LOCKED: False,
+            LockState.LOCK_STATE_UNLOCKED: True,
+        }.get(vehicle.state.charging.cable_lock),
     ),
 }
 
