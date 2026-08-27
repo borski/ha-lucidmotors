@@ -31,6 +31,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    DEGREE,
     PERCENTAGE,
     UnitOfEnergy,
     UnitOfLength,
@@ -329,6 +330,48 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         icon="mdi:cloud-download",
         device_class=SensorDeviceClass.ENUM,
         value=lambda value, _: enum_to_str(TcuDownloadStatus, value),
+    ),
+    LucidSensorEntityDescription(
+        key="heading_precise",
+        key_path=["state", "gps"],
+        translation_key="gps_heading",
+        icon="mdi:compass",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=DEGREE,
+        suggested_display_precision=0,
+    ),
+    LucidSensorEntityDescription(
+        key="elevation",
+        key_path=["state", "gps"],
+        translation_key="gps_elevation",
+        icon="mdi:elevation-rise",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfLength.METERS,
+        suggested_display_precision=0,
+        # Reported in centimetres; see the PR description for how this was
+        # established, the protobuf carries no unit.
+        value=lambda value, _: round(value / 100, 1),
+    ),
+    LucidSensorEntityDescription(
+        key="latitude",
+        key_path=["state", "gps", "location"],
+        translation_key="gps_latitude",
+        icon="mdi:latitude",
+        entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=DEGREE,
+        suggested_display_precision=6,
+    ),
+    LucidSensorEntityDescription(
+        key="longitude",
+        key_path=["state", "gps", "location"],
+        translation_key="gps_longitude",
+        icon="mdi:longitude",
+        entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=DEGREE,
+        suggested_display_precision=6,
     ),
 ]
 
