@@ -276,6 +276,16 @@
             "battery_preconditioning": {
                 "name": "Battery preconditioning"
             }
+        },
+        "device_tracker": {
+            "location": {
+                "name": "Location"
+            }
+        },
+        "update": {
+            "software_update": {
+                "name": "Software update"
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ async def async_setup_entry(
 class LucidTrackerEntity(LucidBaseEntity, TrackerEntity):
     """Tracker for Lucid vehicles."""
 
-    _attr_force_update: bool = False
+    _attr_force_update: bool = True
     _attr_icon: str = "mdi:car"
 
     def __init__(
@@ -47,7 +47,7 @@ class LucidTrackerEntity(LucidBaseEntity, TrackerEntity):
         super().__init__(coordinator, vehicle)
 
         self._attr_unique_id = self.vehicle.config.vin
-        self._attr_name = None
+        self._attr_translation_key = "location"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
