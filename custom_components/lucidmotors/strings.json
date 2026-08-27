@@ -166,6 +166,9 @@
       },
       "hvac_power": {
         "name": "HVAC power"
+      },
+      "charging_cable": {
+        "name": "Charging cable"
       }
     },
     "button": {

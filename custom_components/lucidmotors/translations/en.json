@@ -50,6 +50,9 @@
             },
             "walkaway_lock": {
                 "name": "Walkaway lock"
+            },
+            "charging_cable": {
+                "name": "Charging cable"
             }
         },
         "button": {
