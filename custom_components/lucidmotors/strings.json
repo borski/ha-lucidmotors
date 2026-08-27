@@ -134,6 +134,20 @@
       },
       "update_download_status": {
         "name": "Update download status"
+      },
+      "active_session_ac_current_limit": {
+        "name": "AC charge current (session)"
+      },
+      "charge_port_power": {
+        "name": "Charge port power"
+      },
+      "scheduled_charge_state": {
+        "name": "Scheduled charge state",
+        "state": {
+          "idle": "Idle",
+          "scheduled": "Scheduled",
+          "charging_soon": "Charging soon"
+        }
       }
     },
     "binary_sensor": {
@@ -166,6 +180,9 @@
       },
       "hvac_power": {
         "name": "HVAC power"
+      },
+      "charge_cable_lock": {
+        "name": "Charge cable lock"
       }
     },
     "button": {
