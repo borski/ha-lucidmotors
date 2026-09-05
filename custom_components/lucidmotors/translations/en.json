@@ -278,6 +278,12 @@
             },
             "battery_preconditioning": {
                 "name": "Battery preconditioning"
+            },
+            "passive_lock": {
+                "name": "Passive lock (walkaway)"
+            },
+            "passive_unlock": {
+                "name": "Passive unlock (walkaway)"
             }
         }
     }

@@ -5,8 +5,23 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta, datetime
 import logging
+from typing import Any
 
-from lucidmotors import APIError, LucidAPI, Vehicle, StatusCode, PowerState
+import grpc
+
+from lucidmotors import (
+    APIError,
+    LucidAPI,
+    Vehicle,
+    StatusCode,
+    PowerState,
+    Model,
+    enum_to_str,
+)
+from lucidmotors.gen import (
+    user_preferences_service_pb2,
+    user_preferences_service_pb2_grpc,
+)
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -53,6 +68,11 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator[None]):
         self.password = password
         self._vehicles = {}
         self._expected_updates = {}
+        # Model preferences are stored per model, not per vehicle: the API
+        # keys them by model name, so two Airs on one account share a record.
+        self._model_prefs: dict[str, Any] = {}
+        self._prefs_commit_id: dict[str, int] = {}
+        self._user_prefs_stub: Any = None
 
     async def _async_update_data(self) -> None:
         """Fetch new data from API."""
@@ -172,3 +192,179 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator[None]):
         expiration_time = datetime.now() + timedelta(seconds=FAST_UPDATE_TIMEOUT)
         self._expected_updates[vin][path] = expiration_time
         await self.async_request_refresh()
+
+    # ------------------------------------------------------------------
+    # Vehicle model preferences (passive lock / unlock)
+    #
+    # These live on UserPreferencesService rather than VehicleStateService,
+    # which the lucidmotors client does not wrap, so the stub is built here
+    # against the client's channel.
+    # ------------------------------------------------------------------
+
+    async def async_init_preferences(self, vehicles: list[Vehicle]) -> None:
+        """Build the preferences stub and prime the cache for each vehicle."""
+        # TODO: lucidmotors exposes no public accessor for its channel. If a
+        # UserPreferencesService wrapper lands in the library this should
+        # switch to it.
+        self._user_prefs_stub = (
+            user_preferences_service_pb2_grpc.UserPreferencesServiceStub(
+                self.api._channel
+            )
+        )
+        for vehicle in vehicles:
+            await self._async_fetch_model_preferences(vehicle)
+
+    def _model_name(self, vehicle: Vehicle) -> str:
+        """Return the model name the preferences API keys records by."""
+        return enum_to_str(Model, vehicle.config.model)
+
+    async def _async_fetch_model_preferences(self, vehicle: Vehicle) -> None:
+        """Fetch and cache the preferences record for a vehicle's model."""
+        if self._user_prefs_stub is None:
+            return
+
+        model = self._model_name(vehicle)
+        request = user_preferences_service_pb2.GetUserModelPreferencesRequest(
+            model=model
+        )
+
+        try:
+            response = await self._user_prefs_stub.GetUserModelPreferences(request)
+        except grpc.aio.AioRpcError as err:
+            if err.code() is grpc.StatusCode.NOT_FOUND:
+                _LOGGER.info(
+                    "No model preferences exist for %s yet, creating them", model
+                )
+                await self._async_create_model_preferences(model)
+            else:
+                _LOGGER.warning(
+                    "Could not read model preferences for %s: %s", model, err
+                )
+            return
+
+        self._model_prefs[model] = response.preferences
+        self._prefs_commit_id[model] = response.commit_id
+
+    async def _async_create_model_preferences(self, model: str) -> None:
+        """Create a defaults record for a model, then cache it."""
+        try:
+            await self._user_prefs_stub.CreateUserModelPreferences(
+                user_preferences_service_pb2.CreateUserModelPreferencesRequest(
+                    preferences=user_preferences_service_pb2.VehicleModelPreferences(
+                        model=model,
+                    ),
+                )
+            )
+            response = await self._user_prefs_stub.GetUserModelPreferences(
+                user_preferences_service_pb2.GetUserModelPreferencesRequest(
+                    model=model
+                )
+            )
+        except grpc.aio.AioRpcError as err:
+            _LOGGER.warning(
+                "Could not create model preferences for %s: %s", model, err
+            )
+            return
+
+        self._model_prefs[model] = response.preferences
+        self._prefs_commit_id[model] = response.commit_id
+
+    async def _async_set_model_preference(
+        self, vehicle: Vehicle, field: str, value: bool
+    ) -> None:
+        """Write one preference field and confirm the server took it.
+
+        Two things worth knowing about this endpoint.
+
+        First, the wire format cannot express "false". passive_lock and
+        passive_unlock are plain proto3 bools with no field presence, and
+        SetUserModelPreferencesRequest carries no field mask, so setting
+        either to False serialises to nothing and the field is simply absent
+        from the request. In practice the server appears to treat the record
+        as a replacement and does store False - it reads back as False on
+        subsequent Get calls - but that is observed behaviour rather than
+        anything the schema guarantees. The read-back below checks it rather
+        than assuming it.
+
+        Second, and more importantly, storing the preference is not the same
+        as the car honouring it. This is an account-level preference; the
+        vehicle reports its own walkaway state separately and has been seen
+        to keep reporting WALKAWAY_ACTIVE with the preference set to False.
+        There is no VehicleStateService RPC for passive entry in lucidmotors
+        1.4.1, so this is the only control the API offers. The switch entity
+        compares the two and warns when they disagree.
+        """
+        if self._user_prefs_stub is None:
+            raise APIError("Vehicle preferences service is not available")
+
+        model = self._model_name(vehicle)
+
+        # Re-read first: if the app or another client has written since our
+        # last fetch, our commit_id is stale and the server rejects the write.
+        await self._async_fetch_model_preferences(vehicle)
+        if model not in self._model_prefs:
+            raise APIError(f"Could not read current preferences for {model}")
+
+        new_prefs = user_preferences_service_pb2.VehicleModelPreferences()
+        new_prefs.CopyFrom(self._model_prefs[model])
+        setattr(new_prefs, field, value)
+
+        _LOGGER.debug(
+            "Writing %s=%s for %s at prev_commit_id=%d; fields on the wire: %s",
+            field,
+            value,
+            model,
+            self._prefs_commit_id.get(model, 0),
+            [f.name for f, _ in new_prefs.ListFields()],
+        )
+
+        try:
+            await self._user_prefs_stub.SetUserModelPreferences(
+                user_preferences_service_pb2.SetUserModelPreferencesRequest(
+                    preferences=new_prefs,
+                    prev_commit_id=self._prefs_commit_id.get(model, 0),
+                )
+            )
+        except grpc.aio.AioRpcError as err:
+            raise APIError(f"Could not write {field} for {model}: {err}") from err
+
+        # Confirm against the server rather than trusting the write.
+        await self._async_fetch_model_preferences(vehicle)
+        applied = getattr(self._model_prefs[model], field)
+        _LOGGER.debug(
+            "Read back %s=%s for %s at commit_id=%d (wanted %s)",
+            field,
+            applied,
+            model,
+            self._prefs_commit_id.get(model, 0),
+            value,
+        )
+        if applied != value:
+            raise APIError(
+                f"The vehicle did not accept {field}={value}; "
+                f"it still reports {applied}"
+            )
+
+    def _preference(self, vin: str, field: str) -> bool | None:
+        """Return a cached preference for a vehicle, or None if unknown."""
+        vehicle = self.get_vehicle(vin)
+        if vehicle is None:
+            return None
+        prefs = self._model_prefs.get(self._model_name(vehicle))
+        return getattr(prefs, field) if prefs is not None else None
+
+    def get_passive_lock(self, vin: str) -> bool | None:
+        """Return whether passive (walkaway) lock is enabled."""
+        return self._preference(vin, "passive_lock")
+
+    def get_passive_unlock(self, vin: str) -> bool | None:
+        """Return whether passive (walkaway) unlock is enabled."""
+        return self._preference(vin, "passive_unlock")
+
+    async def async_set_passive_lock(self, vehicle: Vehicle, enabled: bool) -> None:
+        """Enable or disable passive (walkaway) lock."""
+        await self._async_set_model_preference(vehicle, "passive_lock", enabled)
+
+    async def async_set_passive_unlock(self, vehicle: Vehicle, enabled: bool) -> None:
+        """Enable or disable passive (walkaway) unlock."""
+        await self._async_set_model_preference(vehicle, "passive_unlock", enabled)
