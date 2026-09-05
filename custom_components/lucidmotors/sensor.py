@@ -87,7 +87,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         translation_key="remaining_battery_percent",
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=0,
+        suggested_display_precision=1,
         native_unit_of_measurement=PERCENTAGE,
         value=lambda value, _: _plausible_percentage(value, "battery charge"),
     ),
