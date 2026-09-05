@@ -51,6 +51,26 @@ from .coordinator import LucidDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+# The battery module sometimes reports 255 for its percentage signals: the 0xFF
+# "signal invalid" sentinel arriving as a literal value instead of being
+# filtered out before it reaches us. Nothing above this cutoff is a real
+# percentage, so drop it rather than record a spike.
+MAX_PLAUSIBLE_PERCENTAGE = 110.0
+
+
+def _plausible_percentage(value: float, name: str) -> float | None:
+    """Return value, or None when it is too large to be a real percentage."""
+    if value > MAX_PLAUSIBLE_PERCENTAGE:
+        _LOGGER.warning(
+            "Ignoring implausible %s of %s%%: above the %s%% cutoff, so the "
+            "sensor reports unknown until the next valid reading",
+            name,
+            value,
+            MAX_PLAUSIBLE_PERCENTAGE,
+        )
+        return None
+    return value
+
 
 @dataclass(frozen=True)
 class LucidSensorEntityDescription(SensorEntityDescription):
@@ -69,6 +89,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         native_unit_of_measurement=PERCENTAGE,
+        value=lambda value, _: _plausible_percentage(value, "battery charge"),
     ),
     LucidSensorEntityDescription(
         key="kwhr",
@@ -311,6 +332,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=PERCENTAGE,
         suggested_display_precision=1,
+        value=lambda value, _: _plausible_percentage(value, "battery health level"),
     ),
     LucidSensorEntityDescription(
         key="speed",
