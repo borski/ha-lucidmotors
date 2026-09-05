@@ -243,6 +243,16 @@
       "ac_charge_current_limit": {
         "name": "AC charge current limit"
       }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    },
+    "update": {
+      "software_update": {
+        "name": "Software update"
+      }
     }
   }
 }

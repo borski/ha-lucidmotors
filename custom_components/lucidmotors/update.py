@@ -55,7 +55,7 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
         super().__init__(coordinator, vehicle)
 
         self._attr_unique_id = f"{vehicle.config.vin}-update"
-        self._attr_name = None
+        self._attr_translation_key = "software_update"
         self.api = coordinator.api
 
     @property
