@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 from urllib.parse import urljoin
-import httpx
 from markdownify import MarkdownConverter
 
 from lucidmotors import Vehicle, APIError, UpdateState
@@ -15,6 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.httpx_client import get_async_client
 
 from . import LucidBaseEntity
 from .const import DOMAIN
@@ -135,24 +135,25 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
         self._attr_release_url = update_release_notes.url
         self._attr_release_summary = update_release_notes.info.description
 
-        async with httpx.AsyncClient() as client:
-            try:
-                assert self._attr_release_url is not None
+        # The shared client avoids loading the CA bundle in the event loop.
+        client = get_async_client(self.hass)
+        try:
+            assert self._attr_release_url is not None
 
-                response = await client.get(
-                    self._attr_release_url,
-                    follow_redirects=True,
-                    headers={"Accept-Language": "en-US,en;q=0.9"},
+            response = await client.get(
+                self._attr_release_url,
+                follow_redirects=True,
+                headers={"Accept-Language": "en-US,en;q=0.9"},
+            )
+
+            if response.status_code == 200:
+                return ReleaseNotesConverter(str(response.url)).convert(
+                    response.text
                 )
-
-                if response.status_code == 200:
-                    return ReleaseNotesConverter(str(response.url)).convert(
-                        response.text
-                    )
-                else:
-                    return f"Failed to retrieve content from {self._attr_release_url}. Status code: {response.status_code}"
-            except Exception as ex:
-                raise HomeAssistantError(ex) from ex
+            else:
+                return f"Failed to retrieve content from {self._attr_release_url}. Status code: {response.status_code}"
+        except Exception as ex:
+            raise HomeAssistantError(ex) from ex
 
     @callback
     def _handle_coordinator_update(self) -> None:
