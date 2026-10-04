@@ -74,9 +74,15 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
     async def async_release_notes(self) -> str | None:
         """Return the release notes."""
 
-        update_release_notes = await self.api.get_update_release_notes(
-            self.latest_version
-        )
+        # The API refuses this request unless it names the vehicle.
+        try:
+            update_release_notes = await self.api.get_update_release_notes(
+                self.latest_version, self.vehicle
+            )
+        except APIError as ex:
+            raise HomeAssistantError(
+                f"Failed to fetch release notes for {self.latest_version}: {ex}"
+            ) from ex
 
         self._attr_release_url = update_release_notes.url
         self._attr_release_summary = update_release_notes.info.description
