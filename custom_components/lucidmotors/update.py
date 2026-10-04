@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from urllib.parse import urljoin
 import httpx
-from markdownify import markdownify as md
+from markdownify import MarkdownConverter
 
 from lucidmotors import Vehicle, APIError, UpdateState
 
@@ -20,6 +21,53 @@ from .const import DOMAIN
 from .coordinator import LucidDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class ReleaseNotesConverter(MarkdownConverter):
+    """Convert a release notes page to markdown for the update dialog.
+
+    The page has a script block, a table of contents of in-page links, and
+    relative image paths. markdownify renders script contents as text, and
+    the links and images do not work outside the page.
+    """
+
+    def __init__(self, base_url: str, **options: Any) -> None:
+        """Initialize with the page URL that relative paths resolve against."""
+        super().__init__(**options)
+        self.base_url = base_url
+
+    def convert_soup(self, soup):
+        """Convert only the content sections, skipping the table of contents.
+
+        Falls back to the whole page if the page layout changes.
+        """
+        sections = soup.select("section.contentSection")
+        if not sections:
+            return super().convert_soup(soup)
+        return "\n\n".join(
+            self.process_tag(section, convert_as_inline=False, children_only=True)
+            for section in sections
+        )
+
+    def convert_script(self, el, text, convert_as_inline):
+        """Drop script contents."""
+        return ""
+
+    def convert_style(self, el, text, convert_as_inline):
+        """Drop style contents."""
+        return ""
+
+    def convert_img(self, el, text, convert_as_inline):
+        """Resolve the image path against the page URL."""
+        if el.get("src"):
+            el["src"] = urljoin(self.base_url, el["src"])
+        return super().convert_img(el, text, convert_as_inline)
+
+    def convert_a(self, el, text, convert_as_inline):
+        """Render in-page links as plain text."""
+        if el.get("href", "").startswith("#"):
+            return text
+        return super().convert_a(el, text, convert_as_inline)
 
 
 async def async_setup_entry(
@@ -98,7 +146,9 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
                 )
 
                 if response.status_code == 200:
-                    return md(response.text)
+                    return ReleaseNotesConverter(str(response.url)).convert(
+                        response.text
+                    )
                 else:
                     return f"Failed to retrieve content from {self._attr_release_url}. Status code: {response.status_code}"
             except Exception as ex:
