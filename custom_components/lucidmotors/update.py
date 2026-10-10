@@ -120,6 +120,8 @@ class LucidUpdateEntity(LucidBaseEntity, UpdateEntity):
         else:
             self._attr_update_percentage = None
 
+        super()._handle_coordinator_update()
+
     async def async_install(self, version, backup: bool, **kwargs: Any) -> None:
         """Install an Update."""
 
