@@ -53,6 +53,15 @@
             },
             "charging_cable": {
                 "name": "Charging cable"
+            },
+            "keyfob_battery_low": {
+                "name": "Key fob battery low"
+            },
+            "lte_connected": {
+                "name": "LTE connected"
+            },
+            "wifi_connected": {
+                "name": "Wi-Fi connected"
             }
         },
         "button": {
@@ -241,6 +250,15 @@
             },
             "gps_longitude": {
                 "name": "GPS longitude"
+            },
+            "lte_type": {
+                "name": "LTE type"
+            },
+            "lte_signal_strength": {
+                "name": "LTE signal strength"
+            },
+            "wifi_signal_strength": {
+                "name": "Wi-Fi signal strength"
             }
         },
         "select": {
