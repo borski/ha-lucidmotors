@@ -134,6 +134,18 @@
       },
       "update_download_status": {
         "name": "Update download status"
+      },
+      "gps_heading": {
+        "name": "GPS heading"
+      },
+      "gps_elevation": {
+        "name": "GPS elevation"
+      },
+      "gps_latitude": {
+        "name": "GPS latitude"
+      },
+      "gps_longitude": {
+        "name": "GPS longitude"
       }
     },
     "binary_sensor": {
