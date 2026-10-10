@@ -58,7 +58,9 @@ NUMBER_TYPES: tuple[LucidNumberEntityDescription, ...] = (
         ),
     ),
     LucidNumberEntityDescription(
-        key="energy_ac_current_limit",
+        # Keep the original key so the entity's unique_id, and with it the
+        # user's existing entity, survives the switch to the persisted field.
+        key="active_session_ac_current_limit",
         key_path=["state", "charging"],
         translation_key="ac_charge_current_limit",
         icon="mdi:current-ac",
