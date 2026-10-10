@@ -15,6 +15,7 @@ from lucidmotors import (
     InternetStatus,
     KeyfobBatteryStatus,
     LockState,
+    DefrostState,
 )
 
 from homeassistant.components.binary_sensor import (
@@ -168,6 +169,14 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
             LockState.LOCK_STATE_LOCKED: False,
             LockState.LOCK_STATE_UNLOCKED: True,
         }.get(vehicle.state.charging.cable_lock),
+    ),
+    "defrost": LucidBinarySensorEntityDescription(
+        key="defrost",
+        key_path=["state", "hvac"],
+        translation_key="defrost",
+        icon="mdi:car-defrost-front",
+        is_on_fn=lambda vehicle: vehicle.state.hvac.defrost
+        == DefrostState.DEFROST_ON,
     ),
 }
 

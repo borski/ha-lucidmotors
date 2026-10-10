@@ -21,6 +21,8 @@ from lucidmotors import (
     TcuDownloadStatus,
     LteType,
     ScheduledChargeState,
+    KeepClimateStatus,
+    MpbFaultStatus,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -471,6 +473,71 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
             ScheduledChargeState.SCHEDULED_CHARGE_STATE_IDLE: "idle",
             ScheduledChargeState.SCHEDULED_CHARGE_STATE_SCHEDULED_TO_CHARGE: "scheduled",
             ScheduledChargeState.SCHEDULED_CHARGE_STATE_REQUEST_TO_CHARGE: "charging_soon",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="preconditioning_time_remaining",
+        key_path=["state", "battery"],
+        translation_key="preconditioning_time_remaining",
+        icon="mdi:battery-clock",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        suggested_display_precision=0,
+        # 0xFFFF is the sentinel the pack uses for "not preconditioning".
+        value=lambda value, _: None if value in (0, 65535) else value,
+    ),
+    LucidSensorEntityDescription(
+        key="unavailable_range",
+        key_path=["state", "battery"],
+        translation_key="unavailable_range",
+        icon="mdi:map-marker-remove",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        suggested_display_precision=0,
+        value=lambda value, _: None if value == 0.0 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="keep_climate_status",
+        key_path=["state", "hvac"],
+        translation_key="keep_climate_status",
+        icon="mdi:paw",
+        device_class=SensorDeviceClass.ENUM,
+        options=["inactive", "enabled", "canceled", "pet_mode"],
+        value=lambda value, _: {
+            KeepClimateStatus.KEEP_CLIMATE_STATUS_INACTIVE: "inactive",
+            KeepClimateStatus.KEEP_CLIMATE_STATUS_ENABLED: "enabled",
+            KeepClimateStatus.KEEP_CLIMATE_STATUS_CANCELED: "canceled",
+            KeepClimateStatus.KEEP_CLIMATE_STATUS_PET_MODE_ON: "pet_mode",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="mpb_fault_status",
+        key_path=["state", "fault_state"],
+        translation_key="motor_fault_status",
+        icon="mdi:engine",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            "normal",
+            "warning",
+            "critical",
+            "warning_protection",
+            "critical_protection",
+            "critical_hardware",
+        ],
+        # MPB is the Motor Power Bridge, i.e. the inverter. HAPS variants are
+        # protection-system sub-faults and HW_FLT is a hardware fault.
+        # UNKNOWN / RESERVED / INVALID map to None so the entity reads as
+        # unknown rather than showing a state nobody can act on.
+        value=lambda value, _: {
+            MpbFaultStatus.MPB_FAULT_STATUS_NORMAL: "normal",
+            MpbFaultStatus.MPB_FAULT_STATUS_WARNING: "warning",
+            MpbFaultStatus.MPB_FAULT_STATUS_CRITICAL: "critical",
+            MpbFaultStatus.MPB_FAULT_STATUS_WARNING_HAPS: "warning_protection",
+            MpbFaultStatus.MPB_FAULT_STATUS_CRITICAL_HAPS: "critical_protection",
+            MpbFaultStatus.MPB_FAULT_STATUS_CRITICAL_HW_FLT: "critical_hardware",
         }.get(value),
     ),
 ]
