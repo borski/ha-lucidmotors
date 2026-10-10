@@ -18,6 +18,13 @@ from .const import (
     FAST_UPDATE_TIMEOUT,
 )
 
+# Power states where the car is not awake, so we poll at the idle rate.
+# 12 and 13 are unnamed in the API but show up on Gravity: 13 follows
+# WINK, MONITOR or SLEEP_CHARGE and leads to SLEEP, and treating both as
+# asleep matches the car (nshp/python-lucidmotors#23). SLEEP_CHARGE stays
+# on the awake rate so charging progress updates promptly.
+IDLE_POWER_STATES = frozenset({PowerState.POWER_STATE_SLEEP, 12, 13})
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -88,7 +95,7 @@ class LucidDataUpdateCoordinator(DataUpdateCoordinator[None]):
 
         for vehicle in self.api.vehicles:
             # If any vehicle is awake, let's poll more often
-            if vehicle.state.power != PowerState.POWER_STATE_SLEEP:
+            if vehicle.state.power not in IDLE_POWER_STATES:
                 idle_update_interval = AWAKE_UPDATE_INTERVAL
 
             expected_updates = self._expected_updates.get(vehicle.config.vin, {})
