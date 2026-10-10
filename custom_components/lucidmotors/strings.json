@@ -155,6 +155,20 @@
       },
       "wifi_signal_strength": {
         "name": "Wi-Fi signal strength"
+      },
+      "active_session_ac_current_limit": {
+        "name": "AC charge current (session)"
+      },
+      "charge_port_power": {
+        "name": "Charge port power"
+      },
+      "scheduled_charge_state": {
+        "name": "Scheduled charge state",
+        "state": {
+          "idle": "Idle",
+          "scheduled": "Scheduled",
+          "charging_soon": "Charging soon"
+        }
       }
     },
     "binary_sensor": {
@@ -199,6 +213,9 @@
       },
       "wifi_connected": {
         "name": "Wi-Fi connected"
+      },
+      "charge_cable_lock": {
+        "name": "Charge cable lock"
       }
     },
     "button": {
