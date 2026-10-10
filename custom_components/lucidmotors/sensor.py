@@ -97,7 +97,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         translation_key="remaining_battery_power",
         device_class=SensorDeviceClass.ENERGY_STORAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=0,
+        suggested_display_precision=2,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     ),
     LucidSensorEntityDescription(
@@ -106,7 +106,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         translation_key="battery_capacity",
         device_class=SensorDeviceClass.ENERGY_STORAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=0,
+        suggested_display_precision=1,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     ),
     LucidSensorEntityDescription(
@@ -116,7 +116,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:battery-charging",
-        suggested_display_precision=0,
+        suggested_display_precision=2,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
     ),
     LucidSensorEntityDescription(
@@ -126,7 +126,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:map-marker-distance",
-        suggested_display_precision=0,
+        suggested_display_precision=1,
         native_unit_of_measurement=UnitOfLength.MILES,
     ),
     LucidSensorEntityDescription(
@@ -144,7 +144,7 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         translation_key="charging_rate_distance",
         device_class=SensorDeviceClass.SPEED,
         state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=0,
+        suggested_display_precision=1,
         native_unit_of_measurement=UnitOfSpeed.MILES_PER_HOUR,
     ),
     LucidSensorEntityDescription(
