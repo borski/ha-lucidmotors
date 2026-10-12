@@ -195,6 +195,21 @@
           "critical_protection": "Critical (protection system)",
           "critical_hardware": "Critical hardware fault"
         }
+      },
+      "interior": {
+        "name": "Interior"
+      },
+      "roof": {
+        "name": "Roof"
+      },
+      "seating": {
+        "name": "Seating"
+      },
+      "ride_height": {
+        "name": "Ride height"
+      },
+      "air_suspension_status": {
+        "name": "Air suspension status"
       }
     },
     "binary_sensor": {
