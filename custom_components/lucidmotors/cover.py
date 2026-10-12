@@ -43,7 +43,7 @@ class LucidCoverEntityDescriptionMixin:
     open_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]] | None
     close_function: Callable[[LucidAPI, Vehicle], Coroutine[None, None, None]] | None
     is_open: Callable[[Vehicle, Any], bool]
-    is_closed: Callable[[Vehicle, Any], bool] | None
+    is_closed: Callable[[Vehicle, Any], bool | None] | None
     position: Callable[[Vehicle, Any], int | None] | None
     features: CoverEntityFeature
     cover_device_class: CoverDeviceClass
@@ -57,16 +57,43 @@ class LucidCoverEntityDescription(
 
 
 # Kind of arbitrary relative mapping of strange overly verbose "how open is my
-# window" descriptions from Lucid to percentages for the HA Cover entity
-# TODO: WINDOW_POSITION_STATUS_BETWEEN_FULLY_CLOSED_AND_SHORT_DROP_DOWN goes where?
+# window" descriptions from Lucid to percentages for the HA Cover entity.
+# 0 is closed (including the window wound up against its upper stop) and
+# anything above 0 is open. The small drops (anti-clatter, anti-pinch reverse,
+# vent and the drop between closed and short drop) sit with the existing
+# "above short drop" bucket at 25, and the long drop with the short drop at 50.
+# UNKNOWN and UNKNOWN_DE_INITIALIZED are left out on purpose: they carry no
+# position, so the window reports as unknown rather than open.
 WINDOW_POSITION_AS_PERCENT = {
     WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED: 0,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_HARD_STOP_UP: 0,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_ANTICLATTER_POSITION: 25,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_ATP_REVERSE_POSITION: 25,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_VENT_DROP_POSITION: 25,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_BETWEEN_FULLY_CLOSED_AND_SHORT_DROP_DOWN: 25,
     WindowPositionStatus.WINDOW_POSITION_STATUS_ABOVE_SHORT_DROP_POSITION: 25,
     WindowPositionStatus.WINDOW_POSITION_STATUS_SHORT_DROP_POSITION: 50,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_LONG_DROP_POSITION: 50,
     WindowPositionStatus.WINDOW_POSITION_STATUS_BETWEEN_SHORT_DROP_DOWN_AND_FULLY_OPEN: 50,
     WindowPositionStatus.WINDOW_POSITION_STATUS_BELOW_SHORT_DROP_POSITION: 75,
     WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN: 100,
+    WindowPositionStatus.WINDOW_POSITION_STATUS_HARD_STOP_DOWN: 100,
 }
+
+# The car's own summary of all windows. IDLE, UNKNOWN and ERROR say nothing
+# about whether the windows are closed, so they report as unknown.
+ALL_WINDOWS_IS_CLOSED = {
+    AllWindowPosition.ALL_WINDOW_POSITION_CLOSED: True,
+    AllWindowPosition.ALL_WINDOW_POSITION_OPEN: False,
+}
+
+
+def window_is_closed(state: WindowPositionStatus) -> bool | None:
+    """Return whether a window is closed, or None if the car gave no position."""
+    position = WINDOW_POSITION_AS_PERCENT.get(state)
+    if position is None:
+        return None
+    return position == 0
 
 
 COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
@@ -116,8 +143,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         icon="mdi:car-door",
         is_open=lambda vehicle, state: state
         == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
-        is_closed=lambda vehicle, state: state
-        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        is_closed=lambda vehicle, state: window_is_closed(state),
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
@@ -131,8 +157,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         icon="mdi:car-door",
         is_open=lambda vehicle, state: state
         == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
-        is_closed=lambda vehicle, state: state
-        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        is_closed=lambda vehicle, state: window_is_closed(state),
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
@@ -146,8 +171,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         icon="mdi:car-door",
         is_open=lambda vehicle, state: state
         == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
-        is_closed=lambda vehicle, state: state
-        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        is_closed=lambda vehicle, state: window_is_closed(state),
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
@@ -161,8 +185,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         icon="mdi:car-door",
         is_open=lambda vehicle, state: state
         == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_OPEN,
-        is_closed=lambda vehicle, state: state
-        == WindowPositionStatus.WINDOW_POSITION_STATUS_FULLY_CLOSED,
+        is_closed=lambda vehicle, state: window_is_closed(state),
         position=lambda vehicle, state: WINDOW_POSITION_AS_PERCENT.get(state, None),
         close_function=None,
         open_function=None,
@@ -176,8 +199,7 @@ COVER_TYPES: tuple[LucidCoverEntityDescription, ...] = (
         icon="mdi:car-door",
         is_open=lambda vehicle, state: state
         == AllWindowPosition.ALL_WINDOW_POSITION_OPEN,
-        is_closed=lambda vehicle, state: state
-        == AllWindowPosition.ALL_WINDOW_POSITION_CLOSED,
+        is_closed=lambda vehicle, state: ALL_WINDOWS_IS_CLOSED.get(state),
         position=None,
         close_function=lambda api, vehicle: api.close_all_windows(vehicle),
         open_function=lambda api, vehicle: api.open_all_windows(vehicle),
