@@ -16,6 +16,8 @@ from lucidmotors import (
     KeyfobBatteryStatus,
     LockState,
     DefrostState,
+    WarningState,
+    TirePressureSensorDefective,
 )
 
 from homeassistant.components.binary_sensor import (
@@ -25,6 +27,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import LucidBaseEntity
@@ -40,6 +43,18 @@ class LucidBinarySensorEntityDescription(BinarySensorEntityDescription):
 
     key_path: list[str] = field(default_factory=list)
     is_on_fn: Callable = lambda x, y: x
+
+
+# The car reports UNKNOWN when it has no answer; leave the entity unknown rather
+# than reporting that as "no warning".
+TIRE_WARNING = {
+    WarningState.WARNING_OFF: False,
+    WarningState.WARNING_ON: True,
+}
+TIRE_SENSOR_DEFECTIVE = {
+    TirePressureSensorDefective.TIRE_PRESSURE_SENSOR_DEFECTIVE_OFF: False,
+    TirePressureSensorDefective.TIRE_PRESSURE_SENSOR_DEFECTIVE_ON: True,
+}
 
 
 SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
@@ -177,6 +192,130 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
         icon="mdi:car-defrost-front",
         is_on_fn=lambda vehicle: vehicle.state.hvac.defrost
         == DefrostState.DEFROST_ON,
+    ),
+    "front_left_tire_soft_warning": LucidBinarySensorEntityDescription(
+        key="soft_warn_left_front",
+        key_path=["state", "chassis"],
+        translation_key="front_left_tire_soft_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.soft_warn_left_front
+        ),
+    ),
+    "front_right_tire_soft_warning": LucidBinarySensorEntityDescription(
+        key="soft_warn_right_front",
+        key_path=["state", "chassis"],
+        translation_key="front_right_tire_soft_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.soft_warn_right_front
+        ),
+    ),
+    "rear_left_tire_soft_warning": LucidBinarySensorEntityDescription(
+        key="soft_warn_left_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_left_tire_soft_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.soft_warn_left_rear
+        ),
+    ),
+    "rear_right_tire_soft_warning": LucidBinarySensorEntityDescription(
+        key="soft_warn_right_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_right_tire_soft_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.soft_warn_right_rear
+        ),
+    ),
+    "front_left_tire_hard_warning": LucidBinarySensorEntityDescription(
+        key="hard_warn_left_front",
+        key_path=["state", "chassis"],
+        translation_key="front_left_tire_hard_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.hard_warn_left_front
+        ),
+    ),
+    "front_right_tire_hard_warning": LucidBinarySensorEntityDescription(
+        key="hard_warn_right_front",
+        key_path=["state", "chassis"],
+        translation_key="front_right_tire_hard_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.hard_warn_right_front
+        ),
+    ),
+    "rear_left_tire_hard_warning": LucidBinarySensorEntityDescription(
+        key="hard_warn_left_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_left_tire_hard_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.hard_warn_left_rear
+        ),
+    ),
+    "rear_right_tire_hard_warning": LucidBinarySensorEntityDescription(
+        key="hard_warn_right_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_right_tire_hard_warning",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        is_on_fn=lambda vehicle: TIRE_WARNING.get(
+            vehicle.state.chassis.hard_warn_right_rear
+        ),
+    ),
+    "front_left_tire_sensor_fault": LucidBinarySensorEntityDescription(
+        key="sensor_defective_left_front",
+        key_path=["state", "chassis"],
+        translation_key="front_left_tire_sensor_fault",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda vehicle: TIRE_SENSOR_DEFECTIVE.get(
+            vehicle.state.chassis.sensor_defective_left_front
+        ),
+    ),
+    "front_right_tire_sensor_fault": LucidBinarySensorEntityDescription(
+        key="sensor_defective_right_front",
+        key_path=["state", "chassis"],
+        translation_key="front_right_tire_sensor_fault",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda vehicle: TIRE_SENSOR_DEFECTIVE.get(
+            vehicle.state.chassis.sensor_defective_right_front
+        ),
+    ),
+    "rear_left_tire_sensor_fault": LucidBinarySensorEntityDescription(
+        key="sensor_defective_left_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_left_tire_sensor_fault",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda vehicle: TIRE_SENSOR_DEFECTIVE.get(
+            vehicle.state.chassis.sensor_defective_left_rear
+        ),
+    ),
+    "rear_right_tire_sensor_fault": LucidBinarySensorEntityDescription(
+        key="sensor_defective_right_rear",
+        key_path=["state", "chassis"],
+        translation_key="rear_right_tire_sensor_fault",
+        icon="mdi:car-tire-alert",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda vehicle: TIRE_SENSOR_DEFECTIVE.get(
+            vehicle.state.chassis.sensor_defective_right_rear
+        ),
     ),
 }
 
