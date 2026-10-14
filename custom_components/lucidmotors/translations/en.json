@@ -68,6 +68,42 @@
             },
             "defrost": {
                 "name": "Defrost"
+            },
+            "front_left_tire_soft_warning": {
+                "name": "Front left tire soft warning"
+            },
+            "front_right_tire_soft_warning": {
+                "name": "Front right tire soft warning"
+            },
+            "rear_left_tire_soft_warning": {
+                "name": "Rear left tire soft warning"
+            },
+            "rear_right_tire_soft_warning": {
+                "name": "Rear right tire soft warning"
+            },
+            "front_left_tire_hard_warning": {
+                "name": "Front left tire hard warning"
+            },
+            "front_right_tire_hard_warning": {
+                "name": "Front right tire hard warning"
+            },
+            "rear_left_tire_hard_warning": {
+                "name": "Rear left tire hard warning"
+            },
+            "rear_right_tire_hard_warning": {
+                "name": "Rear right tire hard warning"
+            },
+            "front_left_tire_sensor_fault": {
+                "name": "Front left tire sensor fault"
+            },
+            "front_right_tire_sensor_fault": {
+                "name": "Front right tire sensor fault"
+            },
+            "rear_left_tire_sensor_fault": {
+                "name": "Rear left tire sensor fault"
+            },
+            "rear_right_tire_sensor_fault": {
+                "name": "Rear right tire sensor fault"
             }
         },
         "button": {
