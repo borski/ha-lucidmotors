@@ -23,6 +23,11 @@ from lucidmotors import (
     ScheduledChargeState,
     KeepClimateStatus,
     MpbFaultStatus,
+    Interior,
+    RoofType,
+    RearSeatConfig,
+    RideHeightStatus,
+    AirSuspensionLevelStatus,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -283,6 +288,63 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         icon="mdi:tire",
         value=lambda value, _: enum_to_str(Wheels, value),
     ),
+    # enum_to_str does not know the next three enums, so they are mapped here.
+    # *_UNKNOWN is left out of each map and reads as unknown.
+    LucidSensorEntityDescription(
+        key="interior",
+        key_path=["config"],
+        translation_key="interior",
+        icon="mdi:car-seat",
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            "Santa Cruz",
+            "Tahoe",
+            "Mojave",
+            "Mojave PurLuxe",
+            "Santa Monica",
+            "Big Basin",
+            "Yosemite",
+            "Ojai",
+            "Sapphire",
+        ],
+        value=lambda value, _: {
+            Interior.INTERIOR_SANTA_CRUZ: "Santa Cruz",
+            Interior.INTERIOR_TAHOE: "Tahoe",
+            Interior.INTERIOR_MOJAVE: "Mojave",
+            Interior.INTERIOR_MOJAVE_PURLUXE: "Mojave PurLuxe",
+            Interior.INTERIOR_SANTA_MONICA: "Santa Monica",
+            Interior.INTERIOR_BIG_BASIN: "Big Basin",
+            Interior.INTERIOR_YOSEMITE: "Yosemite",
+            Interior.INTERIOR_OJAI: "Ojai",
+            Interior.INTERIOR_SAPPHIRE: "Sapphire",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="roof",
+        key_path=["config"],
+        translation_key="roof",
+        icon="mdi:car-select",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Glass Canopy", "Metal", "Carbon Fiber"],
+        value=lambda value, _: {
+            RoofType.ROOF_TYPE_GLASS_CANOPY: "Glass Canopy",
+            RoofType.ROOF_TYPE_METAL: "Metal",
+            RoofType.ROOF_TYPE_CARBON_FIBER: "Carbon Fiber",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="rear_seat_config",
+        key_path=["config"],
+        translation_key="seating",
+        icon="mdi:seat-passenger",
+        device_class=SensorDeviceClass.ENUM,
+        options=["5 seats", "6 seats", "7 seats"],
+        value=lambda value, _: {
+            RearSeatConfig.REAR_SEAT_CONFIG_5_SEAT: "5 seats",
+            RearSeatConfig.REAR_SEAT_CONFIG_6_SEAT: "6 seats",
+            RearSeatConfig.REAR_SEAT_CONFIG_7_SEAT: "7 seats",
+        }.get(value),
+    ),
     LucidSensorEntityDescription(
         key="power",
         key_path=["state"],
@@ -538,6 +600,37 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
             MpbFaultStatus.MPB_FAULT_STATUS_WARNING_HAPS: "warning_protection",
             MpbFaultStatus.MPB_FAULT_STATUS_CRITICAL_HAPS: "critical_protection",
             MpbFaultStatus.MPB_FAULT_STATUS_CRITICAL_HW_FLT: "critical_hardware",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="ride_height_status",
+        key_path=["state", "body"],
+        translation_key="ride_height",
+        icon="mdi:car-lifted-pickup",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Lowest", "Low", "Standard", "High", "Highest"],
+        # UNKNOWN and UNDEFINED are not heights, so both read as unknown.
+        value=lambda value, _: {
+            RideHeightStatus.RIDE_HEIGHT_STATUS_LOWEST: "Lowest",
+            RideHeightStatus.RIDE_HEIGHT_STATUS_LOW: "Low",
+            RideHeightStatus.RIDE_HEIGHT_STATUS_STANDARD: "Standard",
+            RideHeightStatus.RIDE_HEIGHT_STATUS_HIGH: "High",
+            RideHeightStatus.RIDE_HEIGHT_STATUS_HIGHEST: "Highest",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="air_suspension_level_status",
+        key_path=["state", "body"],
+        translation_key="air_suspension_status",
+        icon="mdi:arrow-up-down",
+        device_class=SensorDeviceClass.ENUM,
+        # Whether the suspension is moving between heights, not the height.
+        options=["Idle", "Raising", "Lowering", "Pending"],
+        value=lambda value, _: {
+            AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_IDLE: "Idle",
+            AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_RAISING: "Raising",
+            AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_LOWERING: "Lowering",
+            AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_PENDING: "Pending",
         }.get(value),
     ),
 ]
