@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, fields
+from datetime import datetime
 import logging
-from typing import cast, Optional
+from typing import Any, cast, Optional
 
 from lucidmotors import (
     Vehicle,
@@ -28,6 +29,7 @@ from lucidmotors import (
     RearSeatConfig,
     RideHeightStatus,
     AirSuspensionLevelStatus,
+    ChargeState,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -55,7 +57,9 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import dt as dt_util
 from homeassistant.util.unit_conversion import DistanceConverter
 
 from . import LucidBaseEntity
@@ -83,6 +87,93 @@ def _plausible_percentage(value: float, name: str) -> float | None:
         )
         return None
     return value
+
+
+# The battery module also sends sentinels in place of its energy reading: 255
+# (0xFF) and 65.535 (0xFFFF scaled by 1000). Neither is a real reading, and
+# either would look like a charge or a big drop to anything that trusts it.
+KWHR_SENTINEL_MIN = 255.0
+KWHR_SENTINEL_FFFF = 65.535
+KWHR_SENTINEL_TOLERANCE = 0.01
+
+
+def _plausible_kwhr(value: float, name: str) -> float | None:
+    """Return value, or None when it is a sentinel rather than a reading."""
+    if (
+        value <= 0
+        or value >= KWHR_SENTINEL_MIN
+        or abs(value - KWHR_SENTINEL_FFFF) < KWHR_SENTINEL_TOLERANCE
+    ):
+        _LOGGER.warning(
+            "Ignoring implausible %s of %s kWh: a sentinel, not a reading, so "
+            "this update is skipped",
+            name,
+            value,
+        )
+        return None
+    return value
+
+
+# Below this distance since the last charge, efficiency is mostly noise: a few
+# hundred metres and a fraction of a kWh can come out at any number at all.
+MIN_DISTANCE_SINCE_CHARGE_MI = 1.0
+
+# A battery that holds more energy than it did at the baseline, by more than
+# regen alone plausibly adds, was charged while we weren't looking (Home
+# Assistant was down, or the API never showed the cable). Start over from here,
+# but only once two readings in a row agree, so one bad value can't do it.
+MISSED_CHARGE_KWH = 2.0
+
+
+def _efficiency_since_charge(
+    baseline_odometer_km: float,
+    baseline_kwhr: float,
+    odometer_km: float,
+    kwhr: float,
+) -> tuple[float | None, float, float]:
+    """Return (mi/kWh, miles driven, kWh used) since the baseline.
+
+    Efficiency is None until MIN_DISTANCE_SINCE_CHARGE_MI has been driven, and
+    while no net energy has been used (a long descent can do that).
+    """
+    distance_mi = DistanceConverter.convert(
+        odometer_km - baseline_odometer_km,
+        UnitOfLength.KILOMETERS,
+        UnitOfLength.MILES,
+    )
+    energy_kwh = baseline_kwhr - kwhr
+    return _miles_per_kwh(distance_mi, energy_kwh), distance_mi, energy_kwh
+
+
+def _miles_per_kwh(distance_mi: float, energy_kwh: float) -> float | None:
+    """Return mi/kWh, or None below the minimum distance or with no energy used."""
+    if distance_mi < MIN_DISTANCE_SINCE_CHARGE_MI or energy_kwh <= 0:
+        return None
+    return distance_mi / energy_kwh
+
+
+def _driving_kwh(
+    last_odometer_km: float | None,
+    last_kwhr: float | None,
+    odometer_km: float,
+    kwhr: float,
+) -> float:
+    """Return the kWh used between two polls if the car moved, else 0.
+
+    Polls where the odometer stood still are parked: climate, Sentry, standby.
+    """
+    if last_odometer_km is None or last_kwhr is None:
+        return 0.0
+    if odometer_km <= last_odometer_km:
+        return 0.0
+    return last_kwhr - kwhr
+
+
+def _cable_connected(charge_state: int) -> bool | None:
+    """Return whether a charging cable is connected, or None if unknown."""
+    if charge_state == ChargeState.CHARGE_STATE_UNKNOWN:
+        return None
+    return charge_state != ChargeState.CHARGE_STATE_NOT_CONNECTED
 
 
 @dataclass(frozen=True)
@@ -667,6 +758,36 @@ async def async_setup_entry(
                         native_unit_of_measurement="Wh/mi",
                     ),
                 ),
+                LucidEfficiencySinceChargeSensor(
+                    coordinator,
+                    vehicle,
+                    LucidSensorEntityDescription(
+                        key="efficiency_since_charge",
+                        key_path=[],  # Unused
+                        translation_key="efficiency_since_charge",
+                        icon="mdi:lightning-bolt-outline",
+                        state_class=SensorStateClass.MEASUREMENT,
+                        suggested_display_precision=2,
+                        # HA only gained an energy-distance device class (and
+                        # unit conversion for it) in 2025.3. This string is the
+                        # same unit that class uses, so adding the device class
+                        # later keeps the history.
+                        native_unit_of_measurement="mi/kWh",
+                    ),
+                ),
+                LucidDrivingEfficiencySinceChargeSensor(
+                    coordinator,
+                    vehicle,
+                    LucidSensorEntityDescription(
+                        key="driving_efficiency_since_charge",
+                        key_path=[],  # Unused
+                        translation_key="driving_efficiency_since_charge",
+                        icon="mdi:car-electric-outline",
+                        state_class=SensorStateClass.MEASUREMENT,
+                        suggested_display_precision=2,
+                        native_unit_of_measurement="mi/kWh",
+                    ),
+                ),
                 LucidPowerSensor(
                     coordinator,
                     vehicle,
@@ -828,3 +949,256 @@ class LucidPowerSensor(LucidSensor):
 
         self._attr_native_value = cast(StateType, value)
         super(LucidSensor, self)._handle_coordinator_update()
+
+
+@dataclass
+class LucidChargeBaseline(ExtraStoredData):
+    """What the efficiency-since-charge sensors keep across restarts."""
+
+    odometer_km: float | None = None
+    kwhr: float | None = None
+    time: datetime | None = None
+    cable_connected: bool | None = None
+    native_value: float | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return a dict representation of the baseline."""
+        data = asdict(self)
+        data["time"] = self.time.isoformat() if self.time is not None else None
+        return data
+
+    @classmethod
+    def from_dict(cls, restored: dict[str, Any]) -> LucidChargeBaseline | None:
+        """Initialize a stored baseline from a dict, or None if unusable."""
+        try:
+            # Without these two there is no baseline to restore.
+            restored["odometer_km"]
+            restored["kwhr"]
+            values: dict[str, Any] = {}
+            for fld in fields(cls):
+                value = restored.get(fld.name, fld.default)
+                if value is None or fld.name == "cable_connected":
+                    values[fld.name] = value
+                elif fld.name == "time":
+                    values[fld.name] = dt_util.parse_datetime(value)
+                else:
+                    values[fld.name] = float(value)
+            return cls(**values)
+        except (KeyError, TypeError, ValueError):
+            return None
+
+
+@dataclass
+class LucidDrivingBaseline(LucidChargeBaseline):
+    """The baseline plus the energy used while moving, and the last poll."""
+
+    driving_kwh: float = 0.0
+    last_odometer_km: float | None = None
+    last_kwhr: float | None = None
+
+
+class LucidSinceChargeSensor(LucidSensor, RestoreEntity):
+    """Base for efficiency sensors measured from the last unplug.
+
+    The baseline is the odometer and battery energy at the moment the cable
+    comes out. It is kept across restarts.
+    """
+
+    _baseline_type: type[LucidChargeBaseline] = LucidChargeBaseline
+    _baseline: LucidChargeBaseline
+
+    def __init__(
+        self,
+        coordinator: LucidDataUpdateCoordinator,
+        vehicle: Vehicle,
+        description: LucidSensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, vehicle, description)
+        self._baseline = self._baseline_type()
+        self._distance_mi: float | None = None
+        self._rise_pending = False
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the baseline before the first coordinator update."""
+        if (extra := await self.async_get_last_extra_data()) is not None:
+            restored = self._baseline_type.from_dict(extra.as_dict())
+            if restored is not None:
+                self._baseline = restored
+                self._attr_native_value = restored.native_value
+        await super().async_added_to_hass()
+
+    @property
+    def extra_restore_state_data(self) -> LucidChargeBaseline:
+        """Return the baseline to be stored across restarts."""
+        return self._baseline
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return how far since the baseline, and when it was taken."""
+        return {
+            "distance_since_charge_mi": _round(self._distance_mi, 1),
+            "baseline_time": self._baseline.time,
+        }
+
+    def _take_baseline(self, odometer_km: float, kwhr: float, reason: str) -> None:
+        _LOGGER.debug(
+            "New '%s' baseline for %s (%s): %.1f km, %.2f kWh",
+            self.entity_description.key,
+            self.vehicle.config.nickname,
+            reason,
+            odometer_km,
+            kwhr,
+        )
+        self._baseline.odometer_km = odometer_km
+        self._baseline.kwhr = kwhr
+        self._baseline.time = dt_util.utcnow()
+
+    def _update_baseline(
+        self, odometer_km: float, kwhr: float, connected: bool | None
+    ) -> bool:
+        """Take a new baseline if needed. Return False to skip this poll."""
+        baseline = self._baseline
+        # An unplug after a charge rises too, and is handled below.
+        rise = (
+            baseline.kwhr is not None
+            and not connected
+            and not baseline.cable_connected
+            and kwhr > baseline.kwhr + MISSED_CHARGE_KWH
+        )
+        if rise and not self._rise_pending:
+            # Wait for the next reading before trusting it.
+            self._rise_pending = True
+            return False
+        self._rise_pending = False
+
+        if baseline.odometer_km is None or baseline.kwhr is None:
+            self._take_baseline(odometer_km, kwhr, "first update")
+        elif baseline.cable_connected and connected is False:
+            self._take_baseline(odometer_km, kwhr, "cable unplugged")
+        elif odometer_km < baseline.odometer_km:
+            self._take_baseline(odometer_km, kwhr, "odometer went backwards")
+        elif rise:
+            self._take_baseline(odometer_km, kwhr, "missed a charge")
+        return True
+
+    def _sample(self, odometer_km: float, kwhr: float) -> None:
+        """Record a poll, plugged in or not. Nothing to do by default."""
+
+    def _value(self, odometer_km: float, kwhr: float) -> float | None:
+        """Return the efficiency for this poll, while unplugged."""
+        raise NotImplementedError
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        _LOGGER.debug(
+            "Updating sensor '%s' of %s",
+            self.entity_description.key,
+            self.vehicle.config.nickname,
+        )
+
+        state = self.vehicle.state
+        odometer_km = state.chassis.odometer_km
+        kwhr = _plausible_kwhr(state.battery.kwhr, "battery energy")
+        connected = _cable_connected(state.charging.charge_state)
+        baseline = self._baseline
+        if connected is None:
+            # Unknown charge state: carry on as if nothing changed.
+            connected = baseline.cable_connected
+
+        # An unset protobuf field reads as zero; no car is at 0 km.
+        if (
+            odometer_km > 0
+            and kwhr is not None
+            and self._update_baseline(odometer_km, kwhr, connected)
+        ):
+            baseline.cable_connected = connected
+            self._sample(odometer_km, kwhr)
+
+            # While plugged in the battery is filling, so the figure would go
+            # negative. Hold the last value until the cable comes out.
+            if not connected:
+                value = self._value(odometer_km, kwhr)
+                self._attr_native_value = value
+                baseline.native_value = value
+
+        super(LucidSensor, self)._handle_coordinator_update()
+
+
+def _round(value: float | None, digits: int) -> float | None:
+    return round(value, digits) if value is not None else None
+
+
+class LucidEfficiencySinceChargeSensor(LucidSinceChargeSensor):
+    """Average efficiency since the charging cable was last unplugged.
+
+    Counts everything the car has used since, parked or driving.
+    """
+
+    def __init__(
+        self,
+        coordinator: LucidDataUpdateCoordinator,
+        vehicle: Vehicle,
+        description: LucidSensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, vehicle, description)
+        self._energy_kwh: float | None = None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return how far and how much energy since the baseline."""
+        return {
+            **super().extra_state_attributes,
+            "energy_used_since_charge_kwh": _round(self._energy_kwh, 2),
+        }
+
+    def _value(self, odometer_km: float, kwhr: float) -> float | None:
+        value, self._distance_mi, self._energy_kwh = _efficiency_since_charge(
+            cast(float, self._baseline.odometer_km),
+            cast(float, self._baseline.kwhr),
+            odometer_km,
+            kwhr,
+        )
+        return value
+
+
+class LucidDrivingEfficiencySinceChargeSensor(LucidSinceChargeSensor):
+    """Efficiency since the last unplug, counting only energy used while moving.
+
+    Energy is summed over the polls in which the odometer advanced, so climate,
+    Sentry and standby while parked are left out. This is the figure to compare
+    with the car's own.
+    """
+
+    _baseline_type = LucidDrivingBaseline
+    _baseline: LucidDrivingBaseline
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return how far and how much driving energy since the baseline."""
+        return {
+            **super().extra_state_attributes,
+            "driving_energy_since_charge_kwh": _round(self._baseline.driving_kwh, 2),
+        }
+
+    def _take_baseline(self, odometer_km: float, kwhr: float, reason: str) -> None:
+        super()._take_baseline(odometer_km, kwhr, reason)
+        self._baseline.driving_kwh = 0.0
+
+    def _sample(self, odometer_km: float, kwhr: float) -> None:
+        baseline = self._baseline
+        baseline.driving_kwh += _driving_kwh(
+            baseline.last_odometer_km, baseline.last_kwhr, odometer_km, kwhr
+        )
+        baseline.last_odometer_km = odometer_km
+        baseline.last_kwhr = kwhr
+
+    def _value(self, odometer_km: float, kwhr: float) -> float | None:
+        self._distance_mi = DistanceConverter.convert(
+            odometer_km - cast(float, self._baseline.odometer_km),
+            UnitOfLength.KILOMETERS,
+            UnitOfLength.MILES,
+        )
+        return _miles_per_kwh(self._distance_mi, self._baseline.driving_kwh)

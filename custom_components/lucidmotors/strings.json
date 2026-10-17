@@ -120,6 +120,12 @@
       "efficiency": {
           "name": "Efficiency"
       },
+      "efficiency_since_charge": {
+          "name": "Efficiency since charge"
+      },
+      "driving_efficiency_since_charge": {
+          "name": "Driving efficiency since charge"
+      },
       "max_cell_temp": {
           "name": "Maximum cell temperature"
       },
