@@ -89,13 +89,39 @@ def _plausible_percentage(value: float, name: str) -> float | None:
     return value
 
 
+# The battery module also sends sentinels in place of its energy reading: 255
+# (0xFF) and 65.535 (0xFFFF scaled by 1000). Neither is a real reading, and
+# either would look like a charge or a big drop to anything that trusts it.
+KWHR_SENTINEL_MIN = 255.0
+KWHR_SENTINEL_FFFF = 65.535
+KWHR_SENTINEL_TOLERANCE = 0.01
+
+
+def _plausible_kwhr(value: float, name: str) -> float | None:
+    """Return value, or None when it is a sentinel rather than a reading."""
+    if (
+        value <= 0
+        or value >= KWHR_SENTINEL_MIN
+        or abs(value - KWHR_SENTINEL_FFFF) < KWHR_SENTINEL_TOLERANCE
+    ):
+        _LOGGER.warning(
+            "Ignoring implausible %s of %s kWh: a sentinel, not a reading, so "
+            "this update is skipped",
+            name,
+            value,
+        )
+        return None
+    return value
+
+
 # Below this distance since the last charge, efficiency is mostly noise: a few
 # hundred metres and a fraction of a kWh can come out at any number at all.
 MIN_DISTANCE_SINCE_CHARGE_MI = 1.0
 
 # A battery that holds more energy than it did at the baseline, by more than
 # regen alone plausibly adds, was charged while we weren't looking (Home
-# Assistant was down, or the API never showed the cable). Start over from here.
+# Assistant was down, or the API never showed the cable). Start over from here,
+# but only once two readings in a row agree, so one bad value can't do it.
 MISSED_CHARGE_KWH = 2.0
 
 
@@ -991,6 +1017,7 @@ class LucidSinceChargeSensor(LucidSensor, RestoreEntity):
         super().__init__(coordinator, vehicle, description)
         self._baseline = self._baseline_type()
         self._distance_mi: float | None = None
+        self._rise_pending = False
 
     async def async_added_to_hass(self) -> None:
         """Restore the baseline before the first coordinator update."""
@@ -1027,6 +1054,34 @@ class LucidSinceChargeSensor(LucidSensor, RestoreEntity):
         self._baseline.kwhr = kwhr
         self._baseline.time = dt_util.utcnow()
 
+    def _update_baseline(
+        self, odometer_km: float, kwhr: float, connected: bool | None
+    ) -> bool:
+        """Take a new baseline if needed. Return False to skip this poll."""
+        baseline = self._baseline
+        # An unplug after a charge rises too, and is handled below.
+        rise = (
+            baseline.kwhr is not None
+            and not connected
+            and not baseline.cable_connected
+            and kwhr > baseline.kwhr + MISSED_CHARGE_KWH
+        )
+        if rise and not self._rise_pending:
+            # Wait for the next reading before trusting it.
+            self._rise_pending = True
+            return False
+        self._rise_pending = False
+
+        if baseline.odometer_km is None or baseline.kwhr is None:
+            self._take_baseline(odometer_km, kwhr, "first update")
+        elif baseline.cable_connected and connected is False:
+            self._take_baseline(odometer_km, kwhr, "cable unplugged")
+        elif odometer_km < baseline.odometer_km:
+            self._take_baseline(odometer_km, kwhr, "odometer went backwards")
+        elif rise:
+            self._take_baseline(odometer_km, kwhr, "missed a charge")
+        return True
+
     def _sample(self, odometer_km: float, kwhr: float) -> None:
         """Record a poll, plugged in or not. Nothing to do by default."""
 
@@ -1045,7 +1100,7 @@ class LucidSinceChargeSensor(LucidSensor, RestoreEntity):
 
         state = self.vehicle.state
         odometer_km = state.chassis.odometer_km
-        kwhr = state.battery.kwhr
+        kwhr = _plausible_kwhr(state.battery.kwhr, "battery energy")
         connected = _cable_connected(state.charging.charge_state)
         baseline = self._baseline
         if connected is None:
@@ -1053,16 +1108,11 @@ class LucidSinceChargeSensor(LucidSensor, RestoreEntity):
             connected = baseline.cable_connected
 
         # An unset protobuf field reads as zero; no car is at 0 km.
-        if odometer_km > 0:
-            if baseline.odometer_km is None or baseline.kwhr is None:
-                self._take_baseline(odometer_km, kwhr, "first update")
-            elif baseline.cable_connected and connected is False:
-                self._take_baseline(odometer_km, kwhr, "cable unplugged")
-            elif odometer_km < baseline.odometer_km:
-                self._take_baseline(odometer_km, kwhr, "odometer went backwards")
-            elif not connected and kwhr > baseline.kwhr + MISSED_CHARGE_KWH:
-                self._take_baseline(odometer_km, kwhr, "missed a charge")
-
+        if (
+            odometer_km > 0
+            and kwhr is not None
+            and self._update_baseline(odometer_km, kwhr, connected)
+        ):
             baseline.cable_connected = connected
             self._sample(odometer_km, kwhr)
 
