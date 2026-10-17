@@ -31,7 +31,38 @@
         "name": "Charging end time"
       },
       "charging_status": {
-        "name": "Charging status"
+        "name": "Charging status",
+        "state": {
+          "not_connected": "Not connected",
+          "cable_connected": "Cable connected",
+          "establishing_session": "Establishing session",
+          "authorizing_pnc": "Authorizing Plug & Charge",
+          "authorizing_external": "Authorizing (external)",
+          "authorized": "Authorized",
+          "charger_preparation": "Charger preparation",
+          "charging": "Charging",
+          "charging_end_ok": "Charging complete",
+          "charging_end_error": "Charging ended with an error",
+          "evse_malfunction": "Charger malfunction",
+          "authentication_failure": "Authentication failure",
+          "charging_stopped": "Charging stopped",
+          "charging_paused": "Charging paused",
+          "authentication_pnc_failure": "Plug & Charge authentication failure",
+          "internal_hardware_fault": "Internal hardware fault",
+          "ready_to_discharge": "Ready to discharge",
+          "preparing_discharge": "Preparing discharge",
+          "discharging": "Discharging",
+          "discharging_completed": "Discharging completed",
+          "discharging_stopped": "Discharging stopped",
+          "discharging_fault": "Discharging fault",
+          "discharging_unavailable": "Discharging unavailable",
+          "evse_not_ready": "Charger not ready",
+          "ac_input_under_voltage": "AC input under voltage",
+          "cable_lock_fault": "Cable lock fault",
+          "cable_connection_fault": "Cable connection fault",
+          "temp_protection": "Temperature protection",
+          "charging_scheduled": "Charging scheduled"
+        }
       },
       "charging_target": {
         "name": "Charging target"
