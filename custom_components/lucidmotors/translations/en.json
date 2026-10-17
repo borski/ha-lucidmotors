@@ -281,6 +281,22 @@
             "update_download_status": {
               "name": "Update download status"
             },
+            "update_install_duration": {
+              "name": "Update install duration"
+            },
+            "update_state": {
+              "name": "Update state",
+              "state": {
+                "in_progress": "In progress",
+                "success": "Success",
+                "failed": "Failed",
+                "waiting_on_bcm": "Waiting on body controller",
+                "failed_drive_allowed": "Failed, drivable",
+                "failed_no_action": "Failed, no action needed",
+                "success_with_warnings": "Success with warnings",
+                "not_started_with_warnings": "Not started, with warnings"
+              }
+            },
             "gps_heading": {
                 "name": "GPS heading"
             },
