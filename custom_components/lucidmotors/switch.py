@@ -14,6 +14,8 @@ from lucidmotors import (
     DefrostState,
     ChargeState,
     BatteryPreconStatus,
+    CreatureComfortMode,
+    KeepClimateStatus,
 )
 
 from homeassistant.components.switch import (
@@ -70,6 +72,20 @@ SWITCH_TYPES: tuple[LucidSwitchEntityDescription, ...] = (
         turn_on_function=lambda api, vehicle: api.battery_precon_on(vehicle),
         turn_off_function=lambda api, vehicle: api.battery_precon_off(vehicle),
         on_value=BatteryPreconStatus.BATTERY_PRECON_ON,
+    ),
+    LucidSwitchEntityDescription(
+        key="keep_climate_status",
+        key_path=["state", "hvac"],
+        translation_key="pet_mode",
+        icon="mdi:paw",
+        device_class=SwitchDeviceClass.SWITCH,
+        turn_on_function=lambda api, vehicle: api.creature_comfort_control(
+            vehicle, CreatureComfortMode.CREATURE_COMFORT_MODE_ON
+        ),
+        turn_off_function=lambda api, vehicle: api.creature_comfort_control(
+            vehicle, CreatureComfortMode.CREATURE_COMFORT_MODE_OFF
+        ),
+        on_value=KeepClimateStatus.KEEP_CLIMATE_STATUS_PET_MODE_ON,
     ),
 )
 
