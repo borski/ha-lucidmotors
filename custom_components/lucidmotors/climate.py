@@ -141,6 +141,28 @@ class LucidClimate(LucidBaseEntity, ClimateEntity):
                         self._attr_hvac_action = HVACAction.COOLING
                     else:
                         self._attr_hvac_action = HVACAction.HEATING
+            case (
+                HvacPower.HVAC_KEEP_TEMP
+                | HvacPower.HVAC_HEATSTROKE_PREVENTION
+                | HvacPower.HVAC_RESIDUAL_HEATING
+            ):
+                # The car is holding the cabin on its own (Keep Climate, Pet
+                # Mode, or residual heat after a drive). The cabin is still
+                # being conditioned, so report that rather than no state at
+                # all. The target is left read-only: set_cabin_temperature
+                # always sends HVAC_PRECONDITION, which would take the car out
+                # of the mode it is holding. The keep climate status sensor
+                # says which hold is on.
+                current = self.vehicle.state.cabin.interior_temp
+                target = self.vehicle.state.hvac.front_left_set_temperature
+                self._attr_hvac_mode = HVACMode.HEAT_COOL
+                if current >= target:
+                    self._attr_hvac_action = HVACAction.COOLING
+                else:
+                    self._attr_hvac_action = HVACAction.HEATING
+                self._attr_supported_features &= (
+                    ~ClimateEntityFeature.TARGET_TEMPERATURE
+                )
             case HvacPower.HVAC_OFF:
                 self._attr_hvac_action = HVACAction.OFF
                 self._attr_hvac_mode = HVACMode.OFF
