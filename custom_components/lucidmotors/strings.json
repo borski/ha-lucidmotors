@@ -356,6 +356,9 @@
       },
       "battery_preconditioning": {
         "name": "Battery preconditioning"
+      },
+      "pet_mode": {
+        "name": "Pet mode"
       }
     },
     "light": {
