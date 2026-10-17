@@ -21,6 +21,7 @@ from lucidmotors import (
     TcuDownloadStatus,
     LteType,
     ScheduledChargeState,
+    ChargeState,
     KeepClimateStatus,
     MpbFaultStatus,
     Interior,
@@ -69,6 +70,15 @@ _LOGGER = logging.getLogger(__name__)
 # filtered out before it reaches us. Nothing above this cutoff is a real
 # percentage, so drop it rather than record a spike.
 MAX_PLAUSIBLE_PERCENTAGE = 110.0
+
+# Every ChargeState the client knows, as a lower-case option without the
+# CHARGE_STATE_ prefix: CHARGE_STATE_CABLE_CONNECTED -> "cable_connected".
+# UNKNOWN reads as unknown rather than as a value.
+CHARGE_STATE_OPTIONS = {
+    value: name.removeprefix("CHARGE_STATE_").lower()
+    for name, value in ChargeState.items()
+    if value != ChargeState.CHARGE_STATE_UNKNOWN
+}
 
 
 def _plausible_percentage(value: float, name: str) -> float | None:
@@ -523,6 +533,15 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         suggested_display_precision=1,
         # Sub-milliwatt readings are floating point noise, not charging.
         value=lambda value, _: None if value < 0.001 else value,
+    ),
+    LucidSensorEntityDescription(
+        key="charge_state",
+        key_path=["state", "charging"],
+        translation_key="charging_status",
+        icon="mdi:ev-station",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(CHARGE_STATE_OPTIONS.values()),
+        value=lambda value, _: CHARGE_STATE_OPTIONS.get(value),
     ),
     LucidSensorEntityDescription(
         key="scheduled_charge",
