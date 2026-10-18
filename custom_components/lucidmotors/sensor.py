@@ -85,6 +85,18 @@ def _plausible_percentage(value: float, name: str) -> float | None:
     return value
 
 
+# The alarm's status in words. The client library words ARMED, DISARMED and
+# UNKNOWN itself and returns the raw enum name for the rest, so a tilt showed
+# as "ALARM_STATUS_TILT". The Lucid app reports a tilt as "Towing detected".
+ALARM_STATUS = {
+    AlarmStatus.ALARM_STATUS_PRE_ALARM: "Pre-alarm",
+    AlarmStatus.ALARM_STATUS_INTRUSION: "Intrusion",
+    AlarmStatus.ALARM_STATUS_PANIC_MODE: "Panic mode",
+    AlarmStatus.ALARM_STATUS_SHOCK: "Shock",
+    AlarmStatus.ALARM_STATUS_TILT: "Tilt",
+}
+
+
 @dataclass(frozen=True)
 class LucidSensorEntityDescription(SensorEntityDescription):
     """Describes Lucid sensor entity."""
@@ -265,7 +277,9 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
         key_path=["state", "alarm"],
         translation_key="alarm_status",
         icon="mdi:shield-lock",
-        value=lambda value, _: enum_to_str(AlarmStatus, value),
+        value=lambda value, _: (
+            ALARM_STATUS.get(value) or enum_to_str(AlarmStatus, value)
+        ),
     ),
     LucidSensorEntityDescription(
         key="paint_color",
