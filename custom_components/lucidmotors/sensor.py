@@ -28,6 +28,7 @@ from lucidmotors import (
     RearSeatConfig,
     RideHeightStatus,
     AirSuspensionLevelStatus,
+    MirrorFoldState,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -83,6 +84,16 @@ def _plausible_percentage(value: float, name: str) -> float | None:
         )
         return None
     return value
+
+
+# Where each folding mirror is. IDLE is the car's own word and is kept as it
+# is, since it does not say which way the mirror points. UNKNOWN is left out
+# and reads as unknown.
+MIRROR_FOLD_STATE = {
+    MirrorFoldState.MIRROR_FOLD_STATE_FOLDED_IN: "folded_in",
+    MirrorFoldState.MIRROR_FOLD_STATE_FOLDED_OUT: "folded_out",
+    MirrorFoldState.MIRROR_FOLD_STATE_IDLE: "idle",
+}
 
 
 @dataclass(frozen=True)
@@ -632,6 +643,24 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
             AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_LOWERING: "Lowering",
             AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_PENDING: "Pending",
         }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="front_left_mirror_fold_state",
+        key_path=["state", "body"],
+        translation_key="front_left_mirror",
+        icon="mdi:car-side",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(MIRROR_FOLD_STATE.values()),
+        value=lambda value, _: MIRROR_FOLD_STATE.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="front_right_mirror_fold_state",
+        key_path=["state", "body"],
+        translation_key="front_right_mirror",
+        icon="mdi:car-side",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(MIRROR_FOLD_STATE.values()),
+        value=lambda value, _: MIRROR_FOLD_STATE.get(value),
     ),
 ]
 

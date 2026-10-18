@@ -356,6 +356,22 @@
             },
             "air_suspension_status": {
                 "name": "Air suspension status"
+            },
+            "front_left_mirror": {
+                "name": "Front left mirror",
+                "state": {
+                    "folded_in": "Folded",
+                    "folded_out": "Unfolded",
+                    "idle": "Idle"
+                }
+            },
+            "front_right_mirror": {
+                "name": "Front right mirror",
+                "state": {
+                    "folded_in": "Folded",
+                    "folded_out": "Unfolded",
+                    "idle": "Idle"
+                }
             }
         },
         "select": {
