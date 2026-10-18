@@ -317,6 +317,20 @@ SENSOR_TYPES: dict[str, LucidBinarySensorEntityDescription] = {
             vehicle.state.chassis.sensor_defective_right_rear
         ),
     ),
+    "sentry_active": LucidBinarySensorEntityDescription(
+        key="sentry_active_state",
+        key_path=["state", "sentry_state"],
+        translation_key="sentry_active",
+        icon="mdi:cctv",
+        # Whether Sentry is watching right now, which it may not be while it
+        # is enabled (at home, low battery, occupied). Unknown when the car
+        # sends no active state at all, rather than off.
+        is_on_fn=lambda vehicle: (
+            vehicle.state.sentry_state.sentry_active_state.is_active
+            if vehicle.state.sentry_state.HasField("sentry_active_state")
+            else None
+        ),
+    ),
 }
 
 

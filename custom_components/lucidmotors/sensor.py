@@ -28,6 +28,11 @@ from lucidmotors import (
     RearSeatConfig,
     RideHeightStatus,
     AirSuspensionLevelStatus,
+    SentryEnablementState,
+    EnhancedDeterrenceState,
+    SentryThreat,
+    SentryUsbDriveStatus,
+    SentryRemoteAlarmState,
     enum_to_str,
 )
 from lucidmotors.const import TIRE_PRESSURE_MAX, CHARGE_SESSION_TIME_MAX
@@ -631,6 +636,77 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
             AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_RAISING: "Raising",
             AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_LOWERING: "Lowering",
             AirSuspensionLevelStatus.AIR_SUSPENSION_LEVEL_STATUS_PENDING: "Pending",
+        }.get(value),
+    ),
+    # Sentry mode, from VehicleState.sentry_state. IDLE is the car's own state
+    # in each of these and is kept rather than guessed at; every UNKNOWN reads
+    # as unknown.
+    LucidSensorEntityDescription(
+        key="enablement_state",
+        key_path=["state", "sentry_state"],
+        translation_key="sentry_mode",
+        icon="mdi:cctv",
+        device_class=SensorDeviceClass.ENUM,
+        options=["enabled", "disabled", "idle"],
+        value=lambda value, _: {
+            SentryEnablementState.SENTRY_STATE_ENABLED: "enabled",
+            SentryEnablementState.SENTRY_STATE_DISABLED: "disabled",
+            SentryEnablementState.SENTRY_STATE_IDLE: "idle",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="enhanced_deterrence_state",
+        key_path=["state", "sentry_state"],
+        translation_key="enhanced_deterrence",
+        icon="mdi:shield-alert-outline",
+        device_class=SensorDeviceClass.ENUM,
+        options=["enabled", "disabled", "idle"],
+        value=lambda value, _: {
+            EnhancedDeterrenceState.ENHANCED_DETERRENCE_ENABLED: "enabled",
+            EnhancedDeterrenceState.ENHANCED_DETERRENCE_DISABLED: "disabled",
+            EnhancedDeterrenceState.ENHANCED_DETERRENCE_IDLE: "idle",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="threat_level",
+        key_path=["state", "sentry_state"],
+        translation_key="sentry_threat_level",
+        icon="mdi:shield-alert",
+        device_class=SensorDeviceClass.ENUM,
+        options=["no_threat", "idle", "level_1", "level_2", "level_3"],
+        value=lambda value, _: {
+            SentryThreat.SENTRY_THREAT_NO_THREAT: "no_threat",
+            SentryThreat.SENTRY_THREAT_IDLE: "idle",
+            SentryThreat.SENTRY_THREAT_LEVEL_ONE: "level_1",
+            SentryThreat.SENTRY_THREAT_LEVEL_TWO: "level_2",
+            SentryThreat.SENTRY_THREAT_LEVEL_THREE: "level_3",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="remote_alarm_state",
+        key_path=["state", "sentry_state"],
+        translation_key="sentry_alarm_status",
+        icon="mdi:alarm-light-outline",
+        device_class=SensorDeviceClass.ENUM,
+        options=["on", "off", "idle"],
+        value=lambda value, _: {
+            SentryRemoteAlarmState.SENTRY_REMOTE_ALARM_ON: "on",
+            SentryRemoteAlarmState.SENTRY_REMOTE_ALARM_OFF: "off",
+            SentryRemoteAlarmState.SENTRY_REMOTE_ALARM_IDLE: "idle",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="usb_drive_status",
+        key_path=["state", "sentry_state"],
+        translation_key="sentry_usb_drive",
+        icon="mdi:usb-flash-drive",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=["connected", "not_connected", "idle"],
+        value=lambda value, _: {
+            SentryUsbDriveStatus.SENTRY_USB_DRIVE_CONNECTED: "connected",
+            SentryUsbDriveStatus.SENTRY_USB_DRIVE_NOT_CONNECTED: "not_connected",
+            SentryUsbDriveStatus.SENTRY_USB_DRIVE_IDLE: "idle",
         }.get(value),
     ),
 ]

@@ -104,6 +104,9 @@
             },
             "rear_right_tire_sensor_fault": {
                 "name": "Rear right tire sensor fault"
+            },
+            "sentry_active": {
+                "name": "Sentry active"
             }
         },
         "button": {
@@ -356,6 +359,48 @@
             },
             "air_suspension_status": {
                 "name": "Air suspension status"
+            },
+            "sentry_mode": {
+                "name": "Sentry mode",
+                "state": {
+                    "enabled": "Enabled",
+                    "disabled": "Disabled",
+                    "idle": "Idle"
+                }
+            },
+            "enhanced_deterrence": {
+                "name": "Enhanced deterrence",
+                "state": {
+                    "enabled": "Enabled",
+                    "disabled": "Disabled",
+                    "idle": "Idle"
+                }
+            },
+            "sentry_threat_level": {
+                "name": "Sentry threat level",
+                "state": {
+                    "no_threat": "No threat",
+                    "idle": "Idle",
+                    "level_1": "Level 1",
+                    "level_2": "Level 2",
+                    "level_3": "Level 3"
+                }
+            },
+            "sentry_alarm_status": {
+                "name": "Sentry alarm status",
+                "state": {
+                    "on": "On",
+                    "off": "Off",
+                    "idle": "Idle"
+                }
+            },
+            "sentry_usb_drive": {
+                "name": "Sentry USB drive",
+                "state": {
+                    "connected": "Connected",
+                    "not_connected": "Not connected",
+                    "idle": "Idle"
+                }
             }
         },
         "select": {
