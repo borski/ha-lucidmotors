@@ -22,6 +22,7 @@ from lucidmotors import (
     LteType,
     ScheduledChargeState,
     KeepClimateStatus,
+    HvacPreconditionStatus,
     MpbFaultStatus,
     Interior,
     RoofType,
@@ -572,6 +573,24 @@ SENSOR_TYPES: list[LucidSensorEntityDescription] = [
             KeepClimateStatus.KEEP_CLIMATE_STATUS_ENABLED: "enabled",
             KeepClimateStatus.KEEP_CLIMATE_STATUS_CANCELED: "canceled",
             KeepClimateStatus.KEEP_CLIMATE_STATUS_PET_MODE_ON: "pet_mode",
+        }.get(value),
+    ),
+    LucidSensorEntityDescription(
+        key="precondition_status",
+        key_path=["state", "hvac"],
+        translation_key="cabin_precondition_status",
+        icon="mdi:thermostat-auto",
+        device_class=SensorDeviceClass.ENUM,
+        options=["active", "temperature_reached", "timed_out", "canceled", "inactive"],
+        # The cabin, not the battery: that one is the Battery preconditioning
+        # switch. USER_INPUT is a precondition ended by user input. UNKNOWN
+        # reads as unknown.
+        value=lambda value, _: {
+            HvacPreconditionStatus.HVAC_PRECONDITION_STATUS_STILL_ACTIVE: "active",
+            HvacPreconditionStatus.HVAC_PRECONDITION_STATUS_TEMP_REACHED: "temperature_reached",
+            HvacPreconditionStatus.HVAC_PRECONDITION_STATUS_TIMEOUT: "timed_out",
+            HvacPreconditionStatus.HVAC_PRECONDITION_STATUS_USER_INPUT: "canceled",
+            HvacPreconditionStatus.HVAC_PRECONDITION_STATUS_NOT_ACTIVE_PRECONDITION: "inactive",
         }.get(value),
     ),
     LucidSensorEntityDescription(

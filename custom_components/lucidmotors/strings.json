@@ -210,6 +210,16 @@
       },
       "air_suspension_status": {
         "name": "Air suspension status"
+      },
+      "cabin_precondition_status": {
+        "name": "Cabin preconditioning status",
+        "state": {
+          "active": "Active",
+          "temperature_reached": "Temperature reached",
+          "timed_out": "Timed out",
+          "canceled": "Canceled",
+          "inactive": "Inactive"
+        }
       }
     },
     "binary_sensor": {
