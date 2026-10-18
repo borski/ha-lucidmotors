@@ -356,6 +356,22 @@
             },
             "air_suspension_status": {
                 "name": "Air suspension status"
+            },
+            "charging_notice": {
+                "name": "Charging notice",
+                "state": {
+                    "none": "None",
+                    "derated_charging_power": "Reduced charging power",
+                    "savetime_temp_precon": "Warming battery to save time"
+                }
+            },
+            "battery_charging_notice": {
+                "name": "Battery charging notice",
+                "state": {
+                    "none": "None",
+                    "derated_charging_power": "Reduced charging power",
+                    "savetime_temp_precon": "Warming battery to save time"
+                }
             }
         },
         "select": {
