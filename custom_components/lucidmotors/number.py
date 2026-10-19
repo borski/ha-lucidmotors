@@ -70,8 +70,14 @@ NUMBER_TYPES: tuple[LucidNumberEntityDescription, ...] = (
         # upper bound is the Air's 19.2 kW onboard charger at 240 V.
         native_min_value=8.0,
         native_max_value=80.0,
+        # A request appears here while pending, then clears when the active
+        # session limit reflects the applied value. The energy limit can stay
+        # at the vehicle's maximum after the requested limit is applied.
         native_value_fn=lambda vehicle: (
-            vehicle.state.charging.energy_ac_current_limit or 80
+            vehicle.state.mobile_app_request.ac_current_limit_req
+            or vehicle.state.charging.active_session_ac_current_limit
+            or vehicle.state.charging.energy_ac_current_limit
+            or 80
         ),
         set_native_value_fn=lambda api, vehicle, value: api.set_ac_current_limit(
             vehicle, round(value)
